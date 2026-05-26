@@ -1,4 +1,4 @@
-/** Map seeded Swedish labels to English display names. */
+/** Map Swedish team/match labels to English display names. */
 export const TEAM_SV_TO_EN: Record<string, string> = {
   Mexiko: "Mexico",
   Sydkorea: "South Korea",
@@ -51,5 +51,8 @@ export const TEAM_SV_TO_EN: Record<string, string> = {
 };
 
 export function toEnglishTeam(name: string): string {
-  return TEAM_SV_TO_EN[name] ?? name;
+  if (TEAM_SV_TO_EN[name]) return TEAM_SV_TO_EN[name];
+  return name
+    .replace(/^Vinnare\b/i, "Winner")
+    .replace(/^Förlorare\b/i, "Loser");
 }
