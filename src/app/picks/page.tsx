@@ -382,6 +382,17 @@ export default function PicksPage() {
           />
         </>
       )}
+
+      {!locked && matches.length > 0 && (
+        <button
+          type="button"
+          onClick={save}
+          disabled={saving}
+          className="w-full rounded-lg bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
+        >
+          {saving ? "Saving..." : "Save all picks"}
+        </button>
+      )}
     </div>
   );
 }
