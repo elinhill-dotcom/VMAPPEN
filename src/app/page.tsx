@@ -103,7 +103,7 @@ export default function HomePage() {
           <li>
             Matches with{" "}
             <strong className="text-white">
-              Netherlands, Sweden, France, or Mexico
+              The Netherlands, Sweden, France, or Mexico
             </strong>{" "}
             are highlighted on the picks page.
           </li>
