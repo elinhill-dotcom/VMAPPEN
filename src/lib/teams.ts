@@ -50,7 +50,7 @@ export const ALL_TEAMS = [
   "Panama",
 ] as const;
 
-export const FEATURED_TEAMS = ["Sweden"] as const;
+export const FEATURED_TEAMS = ["Sweden", "Sverige"] as const;
 
 export function isFeaturedTeam(name: string): boolean {
   return (FEATURED_TEAMS as readonly string[]).includes(name);

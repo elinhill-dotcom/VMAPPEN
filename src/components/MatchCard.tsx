@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { isMatchLive } from "@/lib/match-live";
 import { evaluatePick } from "@/lib/pick-feedback";
@@ -42,7 +43,15 @@ export function MatchCard({
   showResult,
 }: Props) {
   const featured = match.featured;
-  const live = isMatchLive(match.kickoffAt);
+  const [live, setLive] = useState(() => isMatchLive(match.kickoffAt));
+
+  useEffect(() => {
+    const tick = () => setLive(isMatchLive(match.kickoffAt));
+    tick();
+    const id = setInterval(tick, 30000);
+    return () => clearInterval(id);
+  }, [match.kickoffAt]);
+
   const feedback =
     showResult ? evaluatePick(predHome, predAway, match) : null;
 

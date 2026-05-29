@@ -56,3 +56,15 @@ export function toEnglishTeam(name: string): string {
     .replace(/^Vinnare\b/i, "Winner")
     .replace(/^Förlorare\b/i, "Loser");
 }
+
+const EN_TO_SV: Record<string, string> = Object.fromEntries(
+  Object.entries(TEAM_SV_TO_EN).map(([sv, en]) => [en, sv]),
+);
+
+/** Display name in Swedish (fallback to input for placeholders like 2A). */
+export function toSwedishTeam(name: string): string {
+  if (EN_TO_SV[name]) return EN_TO_SV[name];
+  return name
+    .replace(/^Winner\b/i, "Vinnare")
+    .replace(/^Loser\b/i, "Förlorare");
+}

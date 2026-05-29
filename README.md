@@ -30,7 +30,7 @@ Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, sven
 - **Slutspel** — semifinal, final, brons, mästare (9 val)
 - **Topplista** — poäng för alla i familjen
 - **Livechatt** — öppen 15 min före till 2 h efter avspark
-- **Hejaropps vägg** — kommentarer vid topplistan
+- **Gula väggen** — kommentarer vid topplistan
 - **Admin** — resultat, slutspelssvar, spelare
 
 ## Teknik

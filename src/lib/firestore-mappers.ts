@@ -1,5 +1,7 @@
 import type { MatchView } from "@/components/MatchCard";
+import { formatSvDayLabel } from "@/lib/datetime";
 import { isFeaturedMatch } from "@/lib/teams";
+import { toSwedishTeam } from "@/lib/team-names";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
 import type {
   ChatMessageRow,
@@ -34,16 +36,19 @@ export function mapPlayer(row: PlayerRow) {
 }
 
 export function mapMatch(row: MatchRow): MatchView {
+  const kickoffAt = toIsoString(row.kickoff_at);
+  const homeEn = row.home_team;
+  const awayEn = row.away_team;
   return {
     id: row.id,
     matchNumber: row.match_number,
-    dayLabel: row.day_label,
-    kickoffAt: toIsoString(row.kickoff_at),
-    homeTeam: row.home_team,
-    awayTeam: row.away_team,
+    dayLabel: formatSvDayLabel(kickoffAt),
+    kickoffAt,
+    homeTeam: toSwedishTeam(homeEn),
+    awayTeam: toSwedishTeam(awayEn),
     groupCode: row.group_code,
     stage: row.stage,
-    featured: isFeaturedMatch(row.home_team, row.away_team),
+    featured: isFeaturedMatch(homeEn, awayEn),
     homeScore: row.home_score,
     awayScore: row.away_score,
     finished: row.finished,

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { isAdminLoggedIn } from "@/lib/admin-session";
-import { formatCestMatchKickoff } from "@/lib/datetime";
+import { formatCestMatchKickoff, formatCestTime } from "@/lib/datetime";
 
 type LiveMatch = {
   id: number;
@@ -14,9 +14,19 @@ type LiveMatch = {
   awayScore: number | null;
   finished: boolean;
   groupCode: string | null;
+  featured?: boolean;
+  chatOpensAt?: string;
 };
 
-function MatchChatLink({ m, badge }: { m: LiveMatch; badge: string }) {
+function MatchChatLink({
+  m,
+  badge,
+  subtitle,
+}: {
+  m: LiveMatch;
+  badge: string;
+  subtitle?: string;
+}) {
   const score =
     m.homeScore !== null && m.awayScore !== null
       ? `${m.homeScore} – ${m.awayScore}`
@@ -25,7 +35,11 @@ function MatchChatLink({ m, badge }: { m: LiveMatch; badge: string }) {
     <li>
       <Link
         href={`/live/${m.id}`}
-        className="block rounded-xl border border-[var(--accent)]/50 bg-[var(--card)] p-4 hover:border-[var(--accent)] transition"
+        className={`block rounded-xl border p-4 hover:border-[var(--accent)] transition ${
+          m.featured
+            ? "border-[var(--featured-border)] bg-[var(--featured)] ring-1 ring-[var(--featured-border)]/40"
+            : "border-[var(--accent)]/50 bg-[var(--card)]"
+        }`}
       >
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="font-semibold text-lg">
@@ -37,7 +51,11 @@ function MatchChatLink({ m, badge }: { m: LiveMatch; badge: string }) {
         <p className="text-xs text-[var(--muted)] mt-1">
           {formatCestMatchKickoff(m.kickoffAt)}
           {m.groupCode ? ` · Grupp ${m.groupCode}` : ""}
+          {m.featured ? " · Sverigematch" : ""}
         </p>
+        {subtitle && (
+          <p className="text-xs text-[var(--accent)] mt-1">{subtitle}</p>
+        )}
       </Link>
     </li>
   );
@@ -45,6 +63,7 @@ function MatchChatLink({ m, badge }: { m: LiveMatch; badge: string }) {
 
 export default function LivePage() {
   const [live, setLive] = useState<LiveMatch[]>([]);
+  const [upcoming, setUpcoming] = useState<LiveMatch[]>([]);
   const [testMatches, setTestMatches] = useState<LiveMatch[]>([]);
   const [admin, setAdmin] = useState(false);
 
@@ -59,7 +78,10 @@ export default function LivePage() {
     const load = () =>
       fetch("/api/matches/live")
         .then((r) => r.json())
-        .then((d) => setLive(d.live ?? []));
+        .then((d) => {
+          setLive(d.live ?? []);
+          setUpcoming(d.upcoming ?? []);
+        });
     load();
     const id = setInterval(load, 30000);
     return () => clearInterval(id);
@@ -121,6 +143,29 @@ export default function LivePage() {
           <ul className="space-y-3">
             {live.map((m) => (
               <MatchChatLink key={m.id} m={m} badge="Livechatt →" />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {upcoming.length > 0 && (
+        <section className="space-y-3">
+          <h3 className="text-sm font-semibold">Kommande chatt</h3>
+          <p className="text-xs text-[var(--muted)]">
+            Matcher där chatten öppnar enligt avsparkstid (15 min före).
+          </p>
+          <ul className="space-y-3">
+            {upcoming.slice(0, 12).map((m) => (
+              <MatchChatLink
+                key={m.id}
+                m={m}
+                badge="Kommande"
+                subtitle={
+                  m.chatOpensAt
+                    ? `Chatten öppnar ${formatCestTime(m.chatOpensAt)}`
+                    : undefined
+                }
+              />
             ))}
           </ul>
         </section>

@@ -56,7 +56,7 @@ export function SupporterWall() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 mb-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <span aria-hidden>📣</span>
-          Hejaropps vägg
+          GULA VÄGGEN!
         </h2>
         <p className="text-xs text-[var(--muted)] mt-1">
           Heja, skämt eller hype — håll det trevligt.

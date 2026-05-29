@@ -3,7 +3,7 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
-import { isMatchLive } from "@/lib/match-live";
+import { isMatchLive, getChatWindow } from "@/lib/match-live";
 import {
   knockoutPickToRow,
   mapChatMessage,
@@ -427,6 +427,31 @@ export async function fetchLiveMatches(): Promise<
     data: res.data.filter((m) => isMatchLive(m.kickoffAt)),
     error: null,
   };
+}
+
+/** Matches with chat open now, plus future matches (chat not yet open). */
+export async function fetchChatSchedule(): Promise<
+  DbResult<{
+    live: ReturnType<typeof mapMatch>[];
+    upcoming: ReturnType<typeof mapMatch>[];
+  }>
+> {
+  const res = await fetchMatches();
+  if (res.error || !res.data) {
+    return { data: null, error: res.error ?? "Kunde inte ladda matcher" };
+  }
+  const now = Date.now();
+  const live = res.data.filter((m) => isMatchLive(m.kickoffAt));
+  const upcoming = res.data
+    .filter((m) => {
+      const { opensAt } = getChatWindow(m.kickoffAt);
+      return now < opensAt;
+    })
+    .sort(
+      (a, b) =>
+        new Date(a.kickoffAt).getTime() - new Date(b.kickoffAt).getTime(),
+    );
+  return { data: { live, upcoming }, error: null };
 }
 
 export async function updateMatchResult(
