@@ -49,85 +49,84 @@ export default function HomePage() {
   }, [player]);
 
   const lockLabel = config ? formatCestDateTime(config.lockAt) : "";
-
   const kp = config?.knockoutPoints;
 
   return (
     <div className="space-y-8">
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-        <h2 className="text-lg font-semibold mb-3">How it works</h2>
+        <h2 className="burst-heading mb-4">Så funkar det</h2>
         <ul className="list-disc pl-5 space-y-2 text-[var(--muted)] text-sm">
           <li>
-            Join with your <strong className="text-white">name</strong> and
-            submit picks before kickoff on 11 June.{" "}
-            <strong className="text-white">No login</strong> — use the same name
-            later to continue (see below).
+            Gå med med ditt <strong className="text-white">namn</strong> och
+            lämna in tips före avspark 11 juni.{" "}
+            <strong className="text-white">Ingen inloggning</strong> — använd
+            samma namn senare för att fortsätta.
           </li>
           <li>
-            <strong className="text-white">Come back later:</strong> open{" "}
-            <strong className="text-white">My picks</strong>, enter the same
-            name if needed, and your saved picks load. Use{" "}
-            <strong className="text-white">Save all picks</strong> before you
-            close the browser.
+            <strong className="text-white">Kom tillbaka senare:</strong> öppna{" "}
+            <strong className="text-white">Mina tips</strong>, skriv samma namn
+            om det behövs, och dina sparade tips laddas. Klicka{" "}
+            <strong className="text-white">Spara alla tips</strong> innan du
+            stänger webbläsaren.
           </li>
           <li>
-            <strong className="text-white">Step 1 — Group stage:</strong> predict
-            the score for all 72 group matches.
+            <strong className="text-white">Steg 1 — Gruppspel:</strong> tippa
+            resultat för alla 72 gruppmatcher.
           </li>
           <li>
-            <strong className="text-white">Step 2 — Semis, final & bronze
-            (required):</strong> pick semifinalists, finalists, bronze teams, and
-            the champion — 9 picks total. Don&apos;t skip this after the group
-            stage!
+            <strong className="text-white">Steg 2 — Semifinal, final & brons
+            (obligatoriskt):</strong> välj semifinalister, finalister,
+            bronslag och mästare — 9 val totalt. Glöm inte detta efter
+            gruppspelet!
           </li>
           <li>
-            Entry:{" "}
+            Inträde:{" "}
             <strong className="text-[var(--accent)]">
-              €{config?.jarContributionEur ?? 10} in the office jar
+              {config?.jarContributionEur ?? 100} kr i potten
             </strong>
           </li>
           <li>
-            Group points:{" "}
+            Grupppoäng:{" "}
             <strong className="text-white">{config?.pointsExact ?? 3}</strong>{" "}
-            for exact score,{" "}
+            för exakt resultat,{" "}
             <strong className="text-white">{config?.pointsOutcome ?? 1}</strong>{" "}
-            for correct result (win / draw / loss).
+            för rätt utgång (vinst / oavgjort / förlust).
           </li>
           {kp && (
             <li>
-              Knockout points: {kp.semifinalist} per correct semifinalist,{" "}
-              {kp.finalist} per finalist, {kp.champion} for champion,{" "}
-              {kp.bronzeTeam} per bronze-match team.
+              Slutspelspoäng: {kp.semifinalist} per rätt semifinalist,{" "}
+              {kp.finalist} per finalist, {kp.champion} för mästare,{" "}
+              {kp.bronzeTeam} per lag i bronsmatchen.
             </li>
           )}
           <li>
-            Matches with{" "}
+            Matcher med{" "}
             <strong className="text-white">
-              The Netherlands, Sweden, France, or Mexico
+              Sverige, Nederländerna, Frankrike eller Mexiko
             </strong>{" "}
-            are highlighted on the picks page.
+            markeras på tips-sidan.
           </li>
           <li>
-            <strong className="text-white">Live chat:</strong> opens{" "}
-            <strong className="text-white">15 min before</strong> kickoff, closes{" "}
-            <strong className="text-white">2 hours after</strong> kickoff — enter
-            your name and chat with colleagues during the match.
+            <strong className="text-white">Livechatt:</strong> öppnar{" "}
+            <strong className="text-white">15 min före</strong> avspark, stänger{" "}
+            <strong className="text-white">2 timmar efter</strong> — chatta med
+            kollegor under matchen.
           </li>
           <li>
-            <strong className="text-white">Results:</strong> see all match
-            scores on the <strong className="text-white">Results</strong> page
-            after games are played. On <strong className="text-white">My picks</strong>{" "}
-            you’ll see if your winner was right or wrong.
+            <strong className="text-white">Resultat:</strong> alla matchresultat
+            på sidan <strong className="text-white">Resultat</strong>. På{" "}
+            <strong className="text-white">Mina tips</strong> ser du om ditt
+            tips stämde.
           </li>
         </ul>
         {config?.locked && (
           <p className="mt-4 rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-2 text-sm">
-            Picks are locked — the tournament has started.
+            Tipsen är låsta — turneringen har startat.
           </p>
         )}
         {!config?.locked && lockLabel && (
           <p className="mt-4 text-sm text-[var(--muted)]">
-            Picks lock: {lockLabel}
+            Tips låses: {lockLabel}
           </p>
         )}
       </section>
@@ -135,73 +134,73 @@ export default function HomePage() {
       {player ? (
         <section className="rounded-xl border border-[var(--accent)]/50 bg-[var(--card)] p-6">
           <p className="text-lg">
-            Welcome back, <strong>{player.name}</strong>
+            Välkommen tillbaka, <strong>{player.name}</strong>
           </p>
           {progress && (
             <p className="text-sm text-[var(--muted)] mt-2">
-              Saved progress:{" "}
+              Sparat:{" "}
               <strong className="text-white">
                 {progress.groupPicksCount}/{progress.groupTotal}
               </strong>{" "}
-              group picks ·{" "}
+              grupptips ·{" "}
               <strong className="text-white">
                 {progress.knockoutFilled}/{progress.knockoutTotal}
               </strong>{" "}
-              knockout fields
+              slutspelsval
             </p>
           )}
           <p className="text-xs text-[var(--muted)] mt-2">
-            Remembered on this device. On another browser, enter your name on My
-            picks to load the same account.
+            Sparat på den här enheten. I en annan webbläsare: skriv ditt namn
+            under Mina tips.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <Link
               href="/picks"
               className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-[var(--accent-foreground)]"
             >
-              Go to my picks
+              Gå till mina tips
             </Link>
             <Link
               href="/scoreboard"
               className="rounded-lg border border-[var(--border)] px-5 py-2"
             >
-              Scoreboard
+              Topplista
             </Link>
             <button
               type="button"
               onClick={signOut}
               className="rounded-lg px-5 py-2 text-[var(--muted)] hover:text-white"
             >
-              Use a different name
+              Byt namn
             </button>
           </div>
         </section>
       ) : (
         <ContinueAsPlayer
-          title="Join the pool"
+          title="Gå med i poolen"
           onContinue={remember}
         />
       )}
 
       <section className="text-sm text-[var(--muted)]">
-        <h3 className="font-semibold text-white mb-2">Groups</h3>
+        <h3 className="font-semibold text-white mb-2">Grupper</h3>
         <div className="grid gap-2 sm:grid-cols-2 text-xs">
           {[
-            ["A", "Mexico, South Korea, South Africa, Czech Republic"],
-            ["B", "Canada, Qatar, Switzerland, Bosnia and Herzegovina"],
-            ["C", "Brazil, Morocco, Haiti, Scotland"],
-            ["D", "USA, Paraguay, Australia, Turkey"],
-            ["E", "Germany, Curaçao, Ivory Coast, Ecuador"],
-            ["F", "Netherlands, Japan, Tunisia, Sweden"],
-            ["G", "Belgium, Iran, New Zealand, Egypt"],
-            ["H", "Spain, Saudi Arabia, Uruguay, Cape Verde"],
-            ["I", "France, Senegal, Norway, Iraq"],
-            ["J", "Argentina, Algeria, Austria, Jordan"],
-            ["K", "Portugal, Uzbekistan, Colombia, DR Congo"],
-            ["L", "England, Ghana, Croatia, Panama"],
+            ["A", "Mexiko, Sydkorea, Sydafrika, Tjeckien"],
+            ["B", "Kanada, Qatar, Schweiz, Bosnien och Hercegovina"],
+            ["C", "Brasilien, Marocko, Haiti, Skottland"],
+            ["D", "USA, Paraguay, Australien, Turkiet"],
+            ["E", "Tyskland, Curaçao, Elfenbenskusten, Ecuador"],
+            ["F", "Nederländerna, Japan, Tunisien, Sverige"],
+            ["G", "Belgien, Iran, Nya Zeeland, Egypten"],
+            ["H", "Spanien, Saudiarabien, Uruguay, Kap Verde"],
+            ["I", "Frankrike, Senegal, Norge, Irak"],
+            ["J", "Argentina, Algeriet, Österrike, Jordanien"],
+            ["K", "Portugal, Uzbekistan, Colombia, DR Kongo"],
+            ["L", "England, Ghana, Kroatien, Panama"],
           ].map(([g, teams]) => (
             <p key={g}>
-              <strong>Group {g}:</strong> {teams}
+              <strong>Grupp {g}:</strong> {teams}
             </p>
           ))}
         </div>

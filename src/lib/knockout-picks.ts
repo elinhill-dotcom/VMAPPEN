@@ -25,9 +25,9 @@ export const emptyKnockoutForm = (): KnockoutFormState => ({
 export const KNOCKOUT_PICK_COUNT = 9;
 
 export const KNOCKOUT_STEPS = [
-  { key: "semis", label: "Semifinals", fields: 4, desc: "2 teams per semifinal" },
-  { key: "final", label: "Final + winner", fields: 3, desc: "2 finalists + champion" },
-  { key: "bronze", label: "Bronze match", fields: 2, desc: "2 teams" },
+  { key: "semis", label: "Semifinaler", fields: 4, desc: "2 lag per semifinal" },
+  { key: "final", label: "Final + mästare", fields: 3, desc: "2 finalister + vinnare" },
+  { key: "bronze", label: "Bronsmatch", fields: 2, desc: "2 lag" },
 ] as const;
 
 export function countKnockoutFilled(form: KnockoutFormState): number {

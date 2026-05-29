@@ -1,15 +1,16 @@
 {
-  "name": "world-cup-betting",
+  "name": "vmapp",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:seed": "tsx scripts/seed-supabase.ts"
+    "db:seed": "tsx scripts/seed-firestore.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.1",
+    "firebase": "^11.6.0",
+    "firebase-admin": "^13.2.0",
     "next": "^15.3.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"

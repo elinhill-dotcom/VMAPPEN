@@ -3,5 +3,7 @@ node_modules
 dev.db
 dev.db-journal
 .env
+.env.local
+.env*.local
 *.db
 *.db-journal

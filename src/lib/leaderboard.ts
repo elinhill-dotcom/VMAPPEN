@@ -6,15 +6,16 @@ import {
   mapKnockoutPick,
   mapMatch,
   mapPrediction,
-} from "@/lib/supabase-mappers";
+} from "@/lib/firestore-mappers";
 import type {
   KnockoutAnswerRow,
   KnockoutPickRow,
   MatchRow,
   PlayerRow,
   PredictionRow,
-} from "@/lib/supabase-types";
-import { getSupabaseBrowser, getSupabaseServer, toErrorMessage, type DbResult } from "@/lib/supabase";
+} from "@/lib/firestore-types";
+import { getFirestoreServer } from "@/lib/firestore-admin";
+import { toErrorMessage, type DbResult } from "@/lib/firestore-shared";
 
 export type LeaderboardEntry = {
   playerId: string;
@@ -27,100 +28,98 @@ export type LeaderboardEntry = {
   groupPicksCount: number;
 };
 
-function client(browser: boolean) {
-  return browser ? getSupabaseBrowser() : getSupabaseServer();
-}
-
-export async function computeLeaderboard(
-  browser = false,
-): Promise<DbResult<LeaderboardEntry[]>> {
+export async function computeLeaderboard(): Promise<
+  DbResult<LeaderboardEntry[]>
+> {
   try {
-    const supabase = client(browser);
+    const db = getFirestoreServer();
 
-    const [playersRes, predsRes, koPicksRes, koAnswerRes, matchesRes] =
+    const [playersSnap, predsSnap, koPicksSnap, koAnswerDoc, matchesSnap] =
       await Promise.all([
-        supabase.from("players").select("*").order("name", { ascending: true }),
-        supabase.from("predictions").select("*"),
-        supabase.from("knockout_picks").select("*"),
-        supabase.from("knockout_answer").select("*").eq("id", 1).maybeSingle(),
-        supabase.from("matches").select("*"),
+        db.collection("players").orderBy("name").get(),
+        db.collection("predictions").get(),
+        db.collection("knockout_picks").get(),
+        db.collection("knockout_answer").doc("config").get(),
+        db.collection("matches").get(),
       ]);
 
-    if (playersRes.error) return { data: null, error: playersRes.error.message };
-    if (predsRes.error) return { data: null, error: predsRes.error.message };
-    if (koPicksRes.error) return { data: null, error: koPicksRes.error.message };
-    if (matchesRes.error) return { data: null, error: matchesRes.error.message };
-
     const matchMap = new Map(
-      (matchesRes.data as MatchRow[]).map((m) => [m.id, mapMatch(m)]),
+      matchesSnap.docs.map((doc) => [
+        Number(doc.id),
+        mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
+      ]),
     );
 
     const predsByPlayer = new Map<string, ReturnType<typeof mapPrediction>[]>();
-    for (const row of predsRes.data as PredictionRow[]) {
-      const p = mapPrediction(row);
+    for (const doc of predsSnap.docs) {
+      const p = mapPrediction({ id: doc.id, ...doc.data() } as PredictionRow);
       const list = predsByPlayer.get(p.playerId) ?? [];
       list.push(p);
       predsByPlayer.set(p.playerId, list);
     }
 
     const koByPlayer = new Map<string, ReturnType<typeof mapKnockoutPick>>();
-    for (const row of koPicksRes.data as KnockoutPickRow[]) {
-      koByPlayer.set(row.player_id, mapKnockoutPick(row));
+    for (const doc of koPicksSnap.docs) {
+      koByPlayer.set(
+        doc.id,
+        mapKnockoutPick({ id: doc.id, ...doc.data() } as KnockoutPickRow),
+      );
     }
 
-    const answerRow = koAnswerRes.data as KnockoutAnswerRow | null;
+    const answerRow = koAnswerDoc.exists
+      ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
+      : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
     const answer =
       mappedAnswer?.set && mappedAnswer.champion ? mappedAnswer : null;
 
-    const entries: LeaderboardEntry[] = (playersRes.data as PlayerRow[]).map(
-      (row) => {
-        let groupPoints = 0;
-        let exactHits = 0;
-        let outcomeHits = 0;
-        let groupPicksCount = 0;
+    const entries: LeaderboardEntry[] = playersSnap.docs.map((doc) => {
+      const row = { id: doc.id, ...doc.data() } as PlayerRow;
+      let groupPoints = 0;
+      let exactHits = 0;
+      let outcomeHits = 0;
+      let groupPicksCount = 0;
 
-        for (const pred of predsByPlayer.get(row.id) ?? []) {
-          const m = matchMap.get(pred.matchId);
-          if (!m || m.stage !== "group") continue;
-          groupPicksCount += 1;
-          if (!m.finished || m.homeScore === null || m.awayScore === null) {
-            continue;
-          }
-          const pts = pointsForPrediction(
-            pred.homeScore,
-            pred.awayScore,
-            m.homeScore,
-            m.awayScore,
-          );
-          groupPoints += pts;
-          if (pts === 3) exactHits += 1;
-          else if (pts === 1) outcomeHits += 1;
+      for (const pred of predsByPlayer.get(row.id) ?? []) {
+        const m = matchMap.get(pred.matchId);
+        if (!m || m.stage !== "group") continue;
+        groupPicksCount += 1;
+        if (!m.finished || m.homeScore === null || m.awayScore === null) {
+          continue;
         }
+        const pts = pointsForPrediction(
+          pred.homeScore,
+          pred.awayScore,
+          m.homeScore,
+          m.awayScore,
+        );
+        groupPoints += pts;
+        if (pts === 3) exactHits += 1;
+        else if (pts === 1) outcomeHits += 1;
+      }
 
-        let knockoutPoints = 0;
-        const ko = koByPlayer.get(row.id);
-        if (answer && ko) {
-          knockoutPoints = scoreKnockoutPick(ko, answer);
-        }
+      let knockoutPoints = 0;
+      const ko = koByPlayer.get(row.id);
+      if (answer && ko) {
+        knockoutPoints = scoreKnockoutPick(ko, answer);
+      }
 
-        return {
-          playerId: row.id,
-          name: row.name,
-          points: groupPoints + knockoutPoints,
-          groupPoints,
-          knockoutPoints,
-          exactHits,
-          outcomeHits,
-          groupPicksCount,
-        };
-      },
-    );
+      return {
+        playerId: row.id,
+        name: row.name,
+        points: groupPoints + knockoutPoints,
+        groupPoints,
+        knockoutPoints,
+        exactHits,
+        outcomeHits,
+        groupPicksCount,
+      };
+    });
 
     entries.sort((a, b) => {
       if (b.points !== a.points) return b.points - a.points;
       if (b.exactHits !== a.exactHits) return b.exactHits - a.exactHits;
-      return a.name.localeCompare(b.name, "en");
+      return a.name.localeCompare(b.name, "sv");
     });
 
     return { data: entries, error: null };
@@ -129,7 +128,7 @@ export async function computeLeaderboard(
   }
 }
 
-export async function getLeaderboardPayload(browser = false): Promise<
+export async function getLeaderboardPayload(): Promise<
   DbResult<{
     entries: LeaderboardEntry[];
     playerCount: number;
@@ -137,8 +136,8 @@ export async function getLeaderboardPayload(browser = false): Promise<
     jarContributionEur: number;
   }>
 > {
-  const res = await computeLeaderboard(browser);
-  if (res.error || !res.data) return { data: null, error: res.error ?? "Failed" };
+  const res = await computeLeaderboard();
+  if (res.error || !res.data) return { data: null, error: res.error ?? "Misslyckades" };
   const playerCount = res.data.length;
   return {
     data: {

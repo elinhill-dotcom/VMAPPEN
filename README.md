@@ -1,37 +1,44 @@
-# World Cup 2026 office pool
+# VM 2026 — Kontorspool
 
-Next.js app for group-stage score predictions, knockout picks, leaderboard, supporter wall, and per-match live chat.
+Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, svenska flaggfärger, Firestore som databas.
 
-## Setup
+## Kom igång
 
-1. Copy `.env.example` to `.env` and set:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+1. Skapa ett [Firebase-projekt](https://console.firebase.google.com/) och aktivera **Firestore**.
+2. Kopiera `.env.example` till `.env.local` och fyll i:
+   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`
+   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+   - `NEXT_PUBLIC_FIREBASE_APP_ID`
+   - `FIREBASE_SERVICE_ACCOUNT_JSON` (hela JSON från Service accounts → Generate new private key)
    - `ADMIN_PASSWORD`
-   - `PREDICTION_LOCK_AT` (optional)
-
-2. In the [Supabase SQL Editor](https://supabase.com/dashboard), run `supabase/schema.sql`.
-
-3. Seed matches:
-
+3. Publicera regler och index:
    ```bash
+   firebase deploy --only firestore
+   ```
+   (eller klistra in `firestore.rules` manuellt i Firebase Console)
+4. Seed matcher:
+   ```bash
+   npm install
    npm run db:seed
    ```
-
-4. Start the app:
-
+5. Starta appen:
    ```bash
    npm run dev
    ```
 
-## Auth
+## Funktioner
 
-No Supabase Auth. Players enter a **display name** stored in `localStorage` (`wc2026_player`). The app creates or reuses a row in `players` by name.
+- **Ingen inloggning** — spelare anger namn, sparas i `localStorage` (`vmapp_player`)
+- **Grupptips** — 72 matcher
+- **Slutspel** — semifinal, final, brons, mästare (9 val)
+- **Topplista** — poäng och pott (100 kr per deltagare)
+- **Livechatt** — öppen 15 min före till 2 h efter avspark
+- **Hejaropps vägg** — kommentarer vid topplistan
+- **Admin** — resultat, slutspelssvar, spelare
 
-## Realtime chat
+## Teknik
 
-`match_chat_messages` is in the Realtime publication (see schema). Chat opens 15 minutes before kickoff and closes 2 hours after.
-
-## Admin
-
-Open `/admin` with the password from `ADMIN_PASSWORD`. Enter results, knockout answers, and manage players.
+- Next.js 15, React 19, Tailwind 4
+- Firestore (firebase + firebase-admin)
+- Realtid i chatten via Firestore `onSnapshot`

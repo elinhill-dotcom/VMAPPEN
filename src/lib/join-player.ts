@@ -11,7 +11,7 @@ export async function joinOrResumeByName(
   });
   const data = await res.json();
   if (!res.ok) {
-    return { error: data.error ?? "Something went wrong" };
+    return { error: data.error ?? "Något gick fel" };
   }
   const player = data.player as StoredPlayer;
   setStoredPlayer(player);

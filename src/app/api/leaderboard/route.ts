@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getLeaderboardPayload } from "@/lib/leaderboard";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET() {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }

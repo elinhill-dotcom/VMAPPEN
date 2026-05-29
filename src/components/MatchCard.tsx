@@ -30,7 +30,7 @@ type Props = {
 };
 
 const STAGE_LABELS: Record<string, string> = {
-  group: "Group stage",
+  group: "Gruppspel",
 };
 
 export function MatchCard({
@@ -58,13 +58,13 @@ export function MatchCard({
         <time>{formatCestMatchKickoff(match.kickoffAt)}</time>
         {match.groupCode && (
           <span className="rounded bg-black/30 px-2 py-0.5">
-            Group {match.groupCode}
+            Grupp {match.groupCode}
           </span>
         )}
         <span>{STAGE_LABELS[match.stage] ?? match.stage}</span>
         {featured && (
-          <span className="rounded bg-[var(--accent)] px-2 py-0.5 font-semibold text-[var(--accent-foreground)]">
-            Our teams — NL · SE · FR · MX
+          <span className="rounded bg-[var(--accent)] px-2 py-0.5 font-bold text-[var(--accent-foreground)] border border-[#0a1420] shadow-[2px_2px_0_#0a1420]">
+            Våra lag — SE · NL · FR · MX
           </span>
         )}
         {live && <span className="live-badge">LIVE</span>}
@@ -81,7 +81,7 @@ export function MatchCard({
             disabled={locked}
             onChange={(e) => onChange(e.target.value, predAway)}
             className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center"
-            aria-label={`${match.homeTeam} goals`}
+            aria-label={`Mål ${match.homeTeam}`}
           />
           <span className="text-[var(--muted)]">–</span>
           <input
@@ -92,7 +92,7 @@ export function MatchCard({
             disabled={locked}
             onChange={(e) => onChange(predHome, e.target.value)}
             className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center"
-            aria-label={`${match.awayTeam} goals`}
+            aria-label={`Mål ${match.awayTeam}`}
           />
         </div>
         <span className="font-semibold">{match.awayTeam}</span>
@@ -101,26 +101,26 @@ export function MatchCard({
       {feedback && (
         <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--bg)]/50 p-3 text-sm space-y-2">
           <p className="text-center text-[var(--muted)]">
-            Final:{" "}
+            Slutresultat:{" "}
             <strong className="text-white">{feedback.actualLabel}</strong> ·{" "}
             {feedback.winnerLabel}
           </p>
           {feedback.hasPick ? (
             <div className="flex flex-wrap items-center justify-center gap-2">
               <span className="text-xs text-[var(--muted)]">
-                Your pick: {feedback.pickLabel}
+                Ditt tips: {feedback.pickLabel}
               </span>
               {feedback.exact ? (
-                <span className="pick-badge pick-badge--exact">Exact +3</span>
+                <span className="pick-badge pick-badge--exact">Exakt +3</span>
               ) : feedback.outcomeCorrect ? (
-                <span className="pick-badge pick-badge--ok">Right winner +1</span>
+                <span className="pick-badge pick-badge--ok">Rätt utgång +1</span>
               ) : (
-                <span className="pick-badge pick-badge--wrong">Wrong</span>
+                <span className="pick-badge pick-badge--wrong">Fel</span>
               )}
             </div>
           ) : (
             <p className="text-center text-xs text-[var(--muted)]">
-              No pick saved for this match
+              Inget tips sparat för den här matchen
             </p>
           )}
         </div>
@@ -131,7 +131,7 @@ export function MatchCard({
           href={`/live/${match.id}`}
           className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] py-2 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90"
         >
-          Live chat — chat with colleagues
+          Livechatt — chatta med kollegor
         </Link>
       )}
     </article>

@@ -79,7 +79,7 @@ export default function AdminPage() {
       setPassword(pwInput);
       setLoggedIn(true);
     } else {
-      setLoginError(result.error ?? "Wrong password");
+      setLoginError(result.error ?? "Fel lösenord");
     }
   }
 
@@ -110,13 +110,13 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (!res.ok) {
-      showMessage(data.error ?? "Save failed", true);
+      showMessage(data.error ?? "Kunde inte spara", true);
       return;
     }
     setMatches((prev) =>
       prev.map((m) => (m.id === matchId ? { ...m, ...data.match } : m)),
     );
-    showMessage(`Result saved for match #${matchId}`);
+    showMessage(`Resultat sparat för match #${matchId}`);
   }
 
   async function saveKnockout() {
@@ -131,10 +131,10 @@ export default function AdminPage() {
     });
     const data = await res.json();
     if (!res.ok) {
-      showMessage(data.error ?? "Save failed", true);
+      showMessage(data.error ?? "Kunde inte spara", true);
       return;
     }
-    showMessage("Knockout answers saved — scoreboard updated.");
+    showMessage("Slutspelssvar sparade — topplistan uppdaterad.");
   }
 
   if (!loggedIn) {
@@ -144,7 +144,7 @@ export default function AdminPage() {
           <h2 className="font-semibold mb-3">Admin</h2>
           <form onSubmit={handleLogin} className="space-y-3">
             <label className="block text-sm text-[var(--muted)]">
-              Password
+              Lösenord
             </label>
             <input
               type="password"
@@ -159,7 +159,7 @@ export default function AdminPage() {
               disabled={loggingIn || !pwInput}
               className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
             >
-              {loggingIn ? "Checking…" : "Log in"}
+              {loggingIn ? "Kontrollerar…" : "Logga in"}
             </button>
             {loginError && (
               <p className="text-sm text-[var(--danger)]">{loginError}</p>
@@ -180,7 +180,7 @@ export default function AdminPage() {
             onClick={handleLogout}
             className="text-xs text-[var(--muted)] underline hover:text-white"
           >
-            Log out
+            Logga ut
           </button>
         </div>
       </section>
@@ -205,7 +205,7 @@ export default function AdminPage() {
               : "bg-[var(--card)]"
           }`}
         >
-          Players
+          Spelare
         </button>
         <button
           type="button"
@@ -216,7 +216,7 @@ export default function AdminPage() {
               : "bg-[var(--card)]"
           }`}
         >
-          Group results
+          Gruppresultat
         </button>
         <button
           type="button"
@@ -227,7 +227,7 @@ export default function AdminPage() {
               : "bg-[var(--card)]"
           }`}
         >
-          Knockout answers
+          Slutspelssvar
         </button>
       </div>
 
@@ -247,7 +247,7 @@ export default function AdminPage() {
                   : "bg-[var(--card)]"
               }`}
             >
-              Not finished
+              Ej klara
             </button>
             <button
               type="button"
@@ -258,7 +258,7 @@ export default function AdminPage() {
                   : "bg-[var(--card)]"
               }`}
             >
-              All
+              Alla
             </button>
           </div>
 
@@ -277,8 +277,8 @@ export default function AdminPage() {
       {tab === "knockout" && (
         <div className="space-y-4">
           <p className="text-sm text-[var(--muted)]">
-            Set the actual semifinalists, finalists, bronze teams, and champion
-            when the tournament reaches those stages.
+            Ange faktiska semifinalister, finalister, bronslag och mästare när
+            turneringen når dessa steg.
           </p>
           <KnockoutPickForm
             form={knockout}
@@ -290,7 +290,7 @@ export default function AdminPage() {
             onClick={saveKnockout}
             className="rounded-lg bg-[var(--success)] px-5 py-2 font-semibold text-[var(--accent-foreground)]"
           >
-            Save knockout answers
+            Spara slutspelssvar
           </button>
         </div>
       )}
@@ -316,7 +316,7 @@ function AdminMatchRow({
     <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
       <p className="text-xs text-[var(--muted)] mb-2">
         #{match.id}
-        {match.groupCode ? ` · Group ${match.groupCode}` : ""} · {match.dayLabel}
+        {match.groupCode ? ` · Grupp ${match.groupCode}` : ""} · {match.dayLabel}
       </p>
       <p className="font-semibold mb-3">
         {match.homeTeam} – {match.awayTeam}
@@ -325,7 +325,7 @@ function AdminMatchRow({
         href={`/live/${match.id}`}
         className="text-xs text-[var(--accent)] hover:underline mb-3 inline-block"
       >
-        Test live chat →
+        Testa livechatt →
       </Link>
       <div className="flex flex-wrap items-center gap-3">
         <input
@@ -348,10 +348,10 @@ function AdminMatchRow({
           onClick={() => onSave(match.id, Number(home), Number(away))}
           className="rounded-lg bg-[var(--success)] px-4 py-1.5 text-sm font-medium text-[var(--accent-foreground)]"
         >
-          {match.finished ? "Update" : "Save result"}
+          {match.finished ? "Uppdatera" : "Spara resultat"}
         </button>
         {match.finished && (
-          <span className="text-xs text-[var(--muted)]">Done</span>
+          <span className="text-xs text-[var(--muted)]">Klar</span>
         )}
       </div>
     </div>

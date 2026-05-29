@@ -34,20 +34,20 @@ export function PicksChecklist({
   return (
     <section className="picks-checklist rounded-xl border-2 border-[var(--accent)]/50 bg-[var(--card)] p-5 space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Two parts — both required</h2>
+        <h2 className="text-lg font-semibold">Två delar — båda krävs</h2>
         <p className="text-sm text-[var(--muted)] mt-1">
-          Your entry is only complete when you have filled in{" "}
-          <strong className="text-white">all group scores</strong> and{" "}
-          <strong className="text-white">semis, final & bronze</strong>. Many
-          people forget step 2 — check both before you leave.
+          Ditt tips är klart först när du fyllt i{" "}
+          <strong className="text-white">alla gruppmatcher</strong> och{" "}
+          <strong className="text-white">semifinal, final & brons</strong>. Många
+          glömmer steg 2 — kolla båda innan du lämnar sidan.
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <StepCard
           step={1}
-          title="Group stage"
-          subtitle={`${groupTotal} match scores`}
+          title="Gruppspel"
+          subtitle={`${groupTotal} matchresultat`}
           filled={groupFilled}
           total={groupTotal}
           done={groupDone}
@@ -57,8 +57,8 @@ export function PicksChecklist({
         />
         <StepCard
           step={2}
-          title="Semis · Final · Bronze"
-          subtitle="9 team picks (not match scores)"
+          title="Semifinal · Final · Brons"
+          subtitle="9 lagval (inte matchresultat)"
           filled={knockoutFilled}
           total={KNOCKOUT_PICK_COUNT}
           done={knockoutDone}
@@ -72,25 +72,25 @@ export function PicksChecklist({
       <ul className="text-xs text-[var(--muted)] space-y-1 border-t border-[var(--border)] pt-3">
         {KNOCKOUT_STEPS.map((s) => (
           <li key={s.key}>
-            <strong className="text-white">Step 2 — {s.label}:</strong> {s.desc}{" "}
-            ({s.fields} picks)
+            <strong className="text-white">Steg 2 — {s.label}:</strong> {s.desc}{" "}
+            ({s.fields} val)
           </li>
         ))}
       </ul>
 
       {!locked && !allDone && (
         <p className="text-sm rounded-lg bg-[var(--danger)]/15 text-[var(--danger)] px-4 py-2">
-          {!groupDone && !knockoutDone && "Fill in both steps above."}
+          {!groupDone && !knockoutDone && "Fyll i båda stegen ovan."}
           {groupDone && !knockoutDone &&
-            "Group stage done — go to Step 2 (Semis · Final · Bronze) before saving!"}
+            "Gruppspelet klart — gå till steg 2 (Semifinal · Final · Brons) innan du sparar!"}
           {!groupDone && knockoutDone &&
-            "Knockout done — finish the remaining group scores."}
+            "Slutspel klart — fyll i resterande gruppmatcher."}
         </p>
       )}
 
       {allDone && !locked && (
         <p className="text-sm rounded-lg bg-[var(--success)]/15 text-[var(--success)] px-4 py-2">
-          All set — click <strong>Save all picks</strong> to store everything.
+          Allt ifyllt — klicka <strong>Spara alla tips</strong> för att spara.
         </p>
       )}
     </section>
@@ -133,23 +133,23 @@ function StepCard({
       }`}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-xs font-bold text-[var(--accent)]">STEP {step}</span>
+        <span className="text-xs font-bold text-[var(--accent)]">STEG {step}</span>
         {done ? (
-          <span className="pick-badge pick-badge--exact">Done</span>
+          <span className="pick-badge pick-badge--exact">Klart</span>
         ) : (
           <span className="pick-badge pick-badge--wrong">
-            {total - filled} left
+            {total - filled} kvar
           </span>
         )}
       </div>
       <p className="font-semibold mt-2">{title}</p>
       <p className="text-xs text-[var(--muted)]">{subtitle}</p>
       <p className="text-sm mt-2 font-medium">
-        {filled}/{total} filled
+        {filled}/{total} ifyllda
       </p>
       {!locked && (
         <p className="text-xs text-[var(--accent)] mt-2">
-          {active ? "You are here" : "Click to open →"}
+          {active ? "Du är här" : "Klicka för att öppna →"}
         </p>
       )}
     </button>

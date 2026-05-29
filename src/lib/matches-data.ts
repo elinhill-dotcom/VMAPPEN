@@ -139,7 +139,7 @@ export function kickoffIso(date: string, time: string): string {
   return `${date}T${pad(h)}:${pad(m)}:00+02:00`;
 }
 
-export const JAR_CONTRIBUTION_EUR = 10;
+export const JAR_CONTRIBUTION_EUR = 100;
 
 export const GROUP_MATCH_IDS = MATCHES.filter((m) => m.stage === "group").map(
   (m) => m.id,

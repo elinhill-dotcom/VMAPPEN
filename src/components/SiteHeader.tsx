@@ -4,26 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-function FootballIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden
-    >
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M12 4 L14.2 9.2 L19.6 9.6 L15.4 13.2 L16.8 18.4 L12 15.6 L7.2 18.4 L8.6 13.2 L4.4 9.6 L9.8 9.2 Z"
-        stroke="currentColor"
-        strokeWidth="0.9"
-        fill="currentColor"
-        fillOpacity="0.15"
-      />
-    </svg>
-  );
-}
-
 function AdminIcon() {
   return (
     <svg
@@ -47,15 +27,17 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
-      <div className="site-header__brand">
+      <div className="site-header__banner-wrap">
         <Image
-          src="/salud-logo.png"
-          alt="Salud Foodgroup Europe"
-          width={220}
-          height={72}
-          className="site-header__logo"
+          src="/super-vmapp-banner.png"
+          alt="SUPER VMAPP — kontorspool för Fotbolls-VM 2026"
+          width={1200}
+          height={630}
+          className="site-header__banner"
           priority
+          sizes="(max-width: 72rem) 100vw, 72rem"
         />
+        <div className="site-header__banner-shine" aria-hidden />
         <Link
           href="/admin"
           className={`site-header__admin ${adminActive ? "site-header__admin--active" : ""}`}
@@ -65,16 +47,11 @@ export function SiteHeader() {
           <AdminIcon />
         </Link>
       </div>
-
-      <div className="site-header__title-block">
-        <div className="site-header__title-row">
-          <FootballIcon className="site-header__football-icon" />
-          <h1 className="site-header__title">FIFA World Cup 2026</h1>
-          <FootballIcon className="site-header__football-icon site-header__football-icon--flip" />
-        </div>
+      <div className="site-header__tagline-bar">
         <p className="site-header__tagline">
-          <span className="site-header__pitch-mark" aria-hidden />
-          Office pool · €10 in the jar · CEST
+          <span className="site-header__tagline-flag" aria-hidden />
+          Kontorspool · 100 kr i potten · Tippa · Heja · Vinn
+          <span className="site-header__tagline-flag site-header__tagline-flag--right" aria-hidden />
         </p>
       </div>
     </header>

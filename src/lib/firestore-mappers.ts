@@ -8,13 +8,27 @@ import type {
   PlayerRow,
   PredictionRow,
   WallCommentRow,
-} from "@/lib/supabase-types";
+} from "@/lib/firestore-types";
+
+function toIsoString(value: unknown): string {
+  if (!value) return new Date().toISOString();
+  if (typeof value === "string") return value;
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "toDate" in value &&
+    typeof (value as { toDate: () => Date }).toDate === "function"
+  ) {
+    return (value as { toDate: () => Date }).toDate().toISOString();
+  }
+  return String(value);
+}
 
 export function mapPlayer(row: PlayerRow) {
   return {
     id: row.id,
     name: row.name,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
 }
 
@@ -23,7 +37,7 @@ export function mapMatch(row: MatchRow): MatchView {
     id: row.id,
     matchNumber: row.match_number,
     dayLabel: row.day_label,
-    kickoffAt: row.kickoff_at,
+    kickoffAt: toIsoString(row.kickoff_at),
     homeTeam: row.home_team,
     awayTeam: row.away_team,
     groupCode: row.group_code,
@@ -98,7 +112,7 @@ export function mapChatMessage(row: ChatMessageRow) {
     id: row.id,
     name: row.name,
     message: row.message,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
 }
 
@@ -107,6 +121,13 @@ export function mapWallComment(row: WallCommentRow) {
     id: row.id,
     name: row.name,
     message: row.message,
-    createdAt: row.created_at,
+    createdAt: toIsoString(row.created_at),
   };
+}
+
+export function docToRow<T extends { id: string }>(
+  id: string,
+  data: Record<string, unknown>,
+): T {
+  return { id, ...data } as T;
 }

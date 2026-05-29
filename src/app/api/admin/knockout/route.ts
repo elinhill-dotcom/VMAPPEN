@@ -4,8 +4,8 @@ import type { KnockoutFormState } from "@/lib/knockout-picks";
 import {
   loadKnockoutAnswer,
   saveKnockoutAnswer,
-} from "@/lib/supabase-predictions";
-import { isSupabaseConfigured } from "@/lib/supabase";
+} from "@/lib/firestore-predictions";
+import { isFirestoreConfigured } from "@/lib/firestore";
 import { ALL_TEAMS } from "@/lib/teams";
 
 const validTeams = new Set<string>(ALL_TEAMS);
@@ -16,9 +16,9 @@ function sanitizeTeam(v: unknown): string {
 }
 
 export async function GET() {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Wrong admin password" }, { status: 401 });
   }
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }

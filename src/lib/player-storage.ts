@@ -1,4 +1,4 @@
-const KEY = "wc2026_player";
+const KEY = "vmapp_player";
 
 export type StoredPlayer = { id: string; name: string };
 

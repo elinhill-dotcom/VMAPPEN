@@ -3,23 +3,23 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { predictionsLocked } from "@/lib/config";
 import {
   clearPlayerPicks,
-} from "@/lib/supabase-predictions";
+} from "@/lib/firestore-predictions";
 import {
   deletePlayer,
   fetchAdminPlayers,
   findPlayerById,
   isPlayerNameTaken,
   renamePlayer,
-} from "@/lib/supabase-players";
-import { isSupabaseConfigured } from "@/lib/supabase";
+} from "@/lib/firestore-players";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
   if (auth) return auth;
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -42,9 +42,9 @@ export async function PATCH(req: NextRequest) {
   const auth = requireAdmin(req);
   if (auth) return auth;
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -83,9 +83,9 @@ export async function DELETE(req: NextRequest) {
   const auth = requireAdmin(req);
   if (auth) return auth;
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -111,9 +111,9 @@ export async function POST(req: NextRequest) {
   const auth = requireAdmin(req);
   if (auth) return auth;
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
 
   if (predictionsLocked()) {
     return NextResponse.json(
-      { error: "Picks are locked — cannot clear picks after kickoff." },
+      { error: "Picks are locked â€” cannot clear picks after kickoff." },
       { status: 403 },
     );
   }

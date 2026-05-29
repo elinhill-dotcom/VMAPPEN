@@ -1,19 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a1020;
-  --card: #121c32;
-  --border: #1e3a5f;
-  --accent: #004a99;
-  --accent-foreground: #ffffff;
-  --featured: #0a2d54;
-  --featured-border: #004a99;
-  --text: #f1f5f9;
-  --muted: #94a3b8;
-  --success: #34d399;
-  --danger: #f87171;
-  --salud-blue: #004a99;
-  --pitch-line: rgba(0, 74, 153, 0.22);
+  --bg: #050d18;
+  --card: #0c1a2e;
+  --card-highlight: #102540;
+  --border: #1e5a8a;
+  --accent: #fecc00;
+  --accent-dark: #e5b800;
+  --accent-foreground: #0a1420;
+  --featured: #0a2848;
+  --featured-border: #fecc00;
+  --text: #f8fafc;
+  --muted: #8eb4d4;
+  --success: #22c55e;
+  --danger: #ef4444;
+  --sweden-blue: #006aa7;
+  --sweden-blue-bright: #1a8fd4;
+  --sweden-yellow: #fecc00;
+  --grass: #1a6b32;
+  --pitch-line: rgba(254, 204, 0, 0.12);
+  --glow-blue: rgba(0, 106, 167, 0.45);
+  --glow-yellow: rgba(254, 204, 0, 0.35);
+  --font-display: "Luckiest Guy", system-ui, sans-serif;
 }
 
 body {
@@ -24,7 +32,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Pitch stripes + centre circle hint */
+/* Stadionnatt + plan */
 body::before {
   content: "";
   position: fixed;
@@ -33,9 +41,27 @@ body::before {
   z-index: 0;
   background-image:
     radial-gradient(
-      circle at 50% -8%,
-      rgba(0, 74, 153, 0.18) 0%,
-      transparent 42%
+      ellipse 120% 80% at 50% -20%,
+      rgba(26, 143, 212, 0.35) 0%,
+      rgba(0, 106, 167, 0.15) 35%,
+      transparent 65%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 0% 50%,
+      rgba(0, 106, 167, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(
+      ellipse 60% 40% at 100% 50%,
+      rgba(0, 106, 167, 0.12) 0%,
+      transparent 55%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 75%,
+      rgba(26, 107, 50, 0.08) 92%,
+      rgba(26, 107, 50, 0.14) 100%
     ),
     repeating-linear-gradient(
       90deg,
@@ -45,13 +71,6 @@ body::before {
       var(--pitch-line) calc(50% + 1px),
       transparent calc(50% + 1px),
       transparent 100%
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 119px,
-      rgba(255, 255, 255, 0.025) 119px,
-      rgba(255, 255, 255, 0.025) 120px
     );
 }
 
@@ -60,131 +79,121 @@ body::before {
   z-index: 1;
 }
 
-/* —— Header —— */
-.site-header {
-  margin-bottom: 1.5rem;
-  border-radius: 1rem;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  box-shadow: 0 8px 32px rgba(0, 74, 153, 0.25);
+.app-shell--wide {
+  max-width: 72rem;
 }
 
-.site-header__brand {
+/* —— Header / banner —— */
+.site-header {
+  margin-bottom: 1.25rem;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 3px solid var(--sweden-yellow);
+  box-shadow:
+    0 0 0 1px var(--sweden-blue),
+    0 12px 40px var(--glow-blue),
+    0 4px 20px var(--glow-yellow);
+}
+
+.site-header__banner-wrap {
   position: relative;
-  background: var(--salud-blue);
-  padding: 1rem 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 3px solid rgba(255, 255, 255, 0.12);
+  background: var(--sweden-blue);
+  line-height: 0;
+}
+
+.site-header__banner {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  object-position: center 35%;
+}
+
+.site-header__banner-shine {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.12) 48%,
+    transparent 62%
+  );
+  pointer-events: none;
 }
 
 .site-header__admin {
   position: absolute;
-  top: 0.65rem;
-  right: 0.65rem;
+  top: 0.75rem;
+  right: 0.75rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.5rem;
-  color: rgba(255, 255, 255, 0.85);
-  background: rgba(0, 0, 0, 0.15);
-  transition: background 0.15s, color 0.15s;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.65rem;
+  color: #fff;
+  background: rgba(5, 13, 24, 0.55);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(6px);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  z-index: 2;
 }
 
 .site-header__admin:hover {
-  color: #fff;
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(5, 13, 24, 0.75);
+  border-color: var(--sweden-yellow);
+  transform: scale(1.05);
 }
 
 .site-header__admin--active {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.22);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+  color: var(--accent-foreground);
+  background: var(--sweden-yellow);
+  border-color: #fff;
+  box-shadow: 0 0 16px var(--glow-yellow);
 }
 
-.site-header__logo {
-  height: auto;
-  width: auto;
-  max-width: min(240px, 85vw);
-  object-fit: contain;
-}
-
-.site-header__title-block {
-  background: linear-gradient(180deg, var(--card) 0%, rgba(18, 28, 50, 0.95) 100%);
-  padding: 1rem 1.25rem 1.1rem;
-  position: relative;
-}
-
-.site-header__title-block::before {
-  content: "";
-  position: absolute;
-  left: 1.25rem;
-  right: 1.25rem;
-  top: 0;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--accent) 0,
-    var(--accent) 12px,
-    transparent 12px,
-    transparent 20px
+.site-header__tagline-bar {
+  background: linear-gradient(
+    180deg,
+    var(--sweden-blue) 0%,
+    #004a75 100%
   );
-  opacity: 0.5;
-}
-
-.site-header__title-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.65rem;
-}
-
-.site-header__football-icon {
-  width: 1.35rem;
-  height: 1.35rem;
-  color: var(--accent);
-  flex-shrink: 0;
-  opacity: 0.9;
-}
-
-.site-header__football-icon--flip {
-  transform: scaleX(-1);
-}
-
-.site-header__title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  text-align: center;
-  line-height: 1.2;
+  padding: 0.65rem 1rem;
+  border-top: 2px solid var(--sweden-yellow);
 }
 
 .site-header__tagline {
-  color: var(--muted);
-  font-size: 0.875rem;
-  margin-top: 0.45rem;
+  margin: 0;
   text-align: center;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-.site-header__pitch-mark {
+.site-header__tagline-flag {
   display: inline-block;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-  opacity: 0.7;
+  width: 1.1rem;
+  height: 0.7rem;
+  background: linear-gradient(
+    180deg,
+    var(--sweden-blue) 0%,
+    var(--sweden-blue) 38%,
+    var(--sweden-yellow) 38%,
+    var(--sweden-yellow) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
 }
 
-/* Floating football decorations */
+/* —— Dekor —— */
 .football-decor {
   position: fixed;
   inset: 0;
@@ -193,40 +202,180 @@ body::before {
   overflow: hidden;
 }
 
+.football-decor__spotlight {
+  position: absolute;
+  top: -10%;
+  width: 45%;
+  height: 70%;
+  opacity: 0.2;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(26, 143, 212, 0.25) 25%,
+    transparent 70%
+  );
+}
+
+.football-decor__spotlight--left {
+  left: -5%;
+  transform: rotate(-12deg);
+}
+
+.football-decor__spotlight--right {
+  right: -5%;
+  transform: rotate(12deg);
+}
+
+.football-decor__grass {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 18vh;
+  background: linear-gradient(
+    0deg,
+    rgba(26, 107, 50, 0.2) 0%,
+    transparent 100%
+  );
+}
+
+.football-decor__confetti {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.football-decor__confetti-piece {
+  position: absolute;
+  border-radius: 1px;
+  opacity: 0.55;
+  animation: confetti-float 6s ease-in-out infinite;
+}
+
+.football-decor__confetti-piece--yellow {
+  background: var(--sweden-yellow);
+  box-shadow: 0 0 6px var(--glow-yellow);
+}
+
+.football-decor__confetti-piece--blue {
+  background: var(--sweden-blue-bright);
+  box-shadow: 0 0 6px var(--glow-blue);
+}
+
+@keyframes confetti-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--rot, 0deg));
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(12px) rotate(calc(var(--rot, 0deg) + 8deg));
+    opacity: 0.7;
+  }
+}
+
 .football-decor__ball {
   position: absolute;
-  width: 7rem;
-  height: 7rem;
-  color: var(--accent);
-  opacity: 0.12;
+  width: 6rem;
+  height: 6rem;
+  color: var(--sweden-yellow);
+  opacity: 0.1;
 }
 
 .football-decor__ball--tl {
-  top: 12%;
-  left: -2rem;
+  top: 14%;
+  left: -1.5rem;
   transform: rotate(-18deg);
 }
 
 .football-decor__ball--br {
-  bottom: 8%;
-  right: -2rem;
+  bottom: 12%;
+  right: -1.5rem;
   transform: rotate(24deg);
-  width: 5.5rem;
-  height: 5.5rem;
+  width: 5rem;
+  height: 5rem;
 }
 
-.football-decor__center-circle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: min(90vw, 520px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border: 2px solid var(--pitch-line);
-  border-radius: 50%;
-  opacity: 0.35;
+/* —— Rubriker (comic-stil som bannern) —— */
+h1,
+h2.section-title,
+.page-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  font-weight: 400;
 }
 
+.burst-heading {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--accent-foreground);
+  background: var(--sweden-yellow);
+  padding: 0.35rem 1rem 0.45rem;
+  border: 3px solid #0a1420;
+  border-radius: 0.25rem;
+  box-shadow:
+    4px 4px 0 #0a1420,
+    0 0 20px var(--glow-yellow);
+  text-shadow: none;
+  line-height: 1.1;
+}
+
+/* —— Kort & sektioner —— */
+main :is(section, article).rounded-xl,
+main .rounded-xl.border {
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(254, 204, 0, 0.06);
+}
+
+/* —— Nav —— */
+.nav-bar {
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 26, 46, 0.6) 0%,
+    transparent 100%
+  );
+  border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.nav-bar__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.nav-link {
+  border: 2px solid transparent;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.12s;
+}
+
+.nav-link:hover:not([class*="bg-[var(--accent)]"]) {
+  border-color: var(--border);
+  box-shadow: 0 0 12px var(--glow-blue);
+}
+
+.nav-link[class*="bg-[var(--accent)]"] {
+  border-color: #0a1420;
+  box-shadow:
+    3px 3px 0 #0a1420,
+    0 0 16px var(--glow-yellow);
+  font-weight: 700;
+}
+
+/* —— Formulär & knappar —— */
 input,
 select,
 button {
@@ -241,7 +390,28 @@ input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
 }
 
-/* Scoreboard + Supporter Wall side by side */
+button.rounded-lg.bg-\[var\(--accent\)\],
+a.rounded-lg.bg-\[var\(--accent\)\] {
+  border: 2px solid #0a1420;
+  box-shadow:
+    3px 3px 0 #0a1420,
+    0 0 14px var(--glow-yellow);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+button.rounded-lg.bg-\[var\(--accent\)\]:hover:not(:disabled),
+a.rounded-lg.bg-\[var\(--accent\)\]:hover {
+  transform: translate(-1px, -1px);
+  box-shadow:
+    4px 4px 0 #0a1420,
+    0 0 20px var(--glow-yellow);
+}
+
+button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 #0a1420;
+}
+
 .scoreboard-page {
   display: grid;
   gap: 1.5rem;
@@ -254,82 +424,62 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
-.app-shell--wide {
-  max-width: 72rem;
-}
-
 .live-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.15rem 0.5rem;
   border-radius: 9999px;
   font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   background: #dc2626;
   color: #fff;
+  border: 2px solid #0a1420;
+  box-shadow: 2px 2px 0 #0a1420;
   animation: live-pulse 1.5s ease-in-out infinite;
 }
 
-.live-badge--sm {
-  padding: 0.1rem 0.4rem;
-  font-size: 0.6rem;
-}
-
-/* Green dot in nav when live chat is open */
 .nav-live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
+  background: var(--sweden-yellow);
+  box-shadow: 0 0 8px var(--glow-yellow);
   flex-shrink: 0;
-}
-
-.nav-bar {
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.nav-bar__inner {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  max-width: 100%;
 }
 
 .pick-badge {
   font-size: 0.7rem;
-  font-weight: 700;
+  font-weight: 800;
   padding: 0.2rem 0.5rem;
   border-radius: 9999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .pick-badge--exact {
-  background: rgba(52, 211, 153, 0.2);
-  color: var(--success);
+  background: rgba(34, 197, 94, 0.25);
+  color: #86efac;
 }
 
 .pick-badge--ok {
-  background: rgba(0, 74, 153, 0.35);
-  color: #93c5fd;
+  background: rgba(0, 106, 167, 0.5);
+  color: var(--sweden-yellow);
 }
 
 .pick-badge--wrong {
-  background: rgba(248, 113, 113, 0.2);
-  color: var(--danger);
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
 }
 
 @keyframes pulse-subtle {
   0%,
   100% {
-    border-color: rgba(248, 113, 113, 0.5);
+    border-color: rgba(254, 204, 0, 0.4);
+    box-shadow: 0 0 8px var(--glow-yellow);
   }
   50% {
-    border-color: rgba(248, 113, 113, 0.9);
+    border-color: var(--sweden-yellow);
+    box-shadow: 0 0 16px var(--glow-yellow);
   }
 }
 
@@ -343,6 +493,6 @@ input[type="number"]::-webkit-inner-spin-button {
     opacity: 1;
   }
   50% {
-    opacity: 0.75;
+    opacity: 0.8;
   }
 }

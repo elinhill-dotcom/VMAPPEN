@@ -36,7 +36,7 @@ function MatchChatLink({ m, badge }: { m: LiveMatch; badge: string }) {
         </div>
         <p className="text-xs text-[var(--muted)] mt-1">
           {formatCestMatchKickoff(m.kickoffAt)}
-          {m.groupCode ? ` · Group ${m.groupCode}` : ""}
+          {m.groupCode ? ` · Grupp ${m.groupCode}` : ""}
         </p>
       </Link>
     </li>
@@ -79,30 +79,30 @@ export default function LivePage() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex flex-wrap items-center gap-2">
           <span className="live-badge">LIVE</span>
-          Match chat
+          <span className="burst-heading text-xl">Matchchatt</span>
         </h2>
         <p className="text-sm text-[var(--muted)] mt-2">
-          Chat opens <strong className="text-white">15 minutes before</strong>{" "}
-          kickoff and stays open until{" "}
-          <strong className="text-white">2 hours after</strong> kickoff. Chat with
-          colleagues — match results are posted later on the Results page.
+          Chatten öppnar <strong className="text-white">15 minuter före</strong>{" "}
+          avspark och stänger{" "}
+          <strong className="text-white">2 timmar efter</strong> avspark. Chatta
+          med kollegor — resultat publiceras på Resultat-sidan.
         </p>
       </section>
 
       {admin && testMatches.length > 0 && (
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-amber-300">
-            Admin — test chat (any match)
+            Admin — testa chatt (valfri match)
           </h3>
           <p className="text-xs text-[var(--muted)]">
-            You are logged in on Admin. Open any match below to test live chat
-            outside the normal window.
+            Du är inloggad som admin. Öppna valfri match nedan för att testa
+            chatten utanför det vanliga tidsfönstret.
           </p>
           <ul className="space-y-3">
             {testMatches.map((m) => (
-              <MatchChatLink key={m.id} m={m} badge="Test chat →" />
+              <MatchChatLink key={m.id} m={m} badge="Testchatt →" />
             ))}
           </ul>
         </section>
@@ -110,17 +110,17 @@ export default function LivePage() {
 
       {live.length === 0 ? (
         <p className="text-[var(--muted)] rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
-          No matches are live right now. Chat opens 15 minutes before kickoff and
-          closes 2 hours after kickoff.
+          Ingen match är live just nu. Chatten öppnar 15 minuter före avspark
+          och stänger 2 timmar efter.
         </p>
       ) : (
         <section className="space-y-3">
           {admin && testMatches.length > 0 && (
-            <h3 className="text-sm font-semibold">Live now</h3>
+            <h3 className="text-sm font-semibold">Live nu</h3>
           )}
           <ul className="space-y-3">
             {live.map((m) => (
-              <MatchChatLink key={m.id} m={m} badge="Live chat →" />
+              <MatchChatLink key={m.id} m={m} badge="Livechatt →" />
             ))}
           </ul>
         </section>

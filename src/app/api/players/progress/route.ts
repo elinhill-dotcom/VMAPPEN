@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
-import { fetchPlayerProgress } from "@/lib/supabase-players";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { fetchPlayerProgress } from "@/lib/firestore-players";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }

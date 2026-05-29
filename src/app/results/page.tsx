@@ -46,23 +46,23 @@ export default function ResultsPage() {
   return (
     <div className="space-y-6">
       <section>
-        <h2 className="text-xl font-semibold">Match results</h2>
+        <h2 className="burst-heading text-xl">Matchresultat</h2>
         <p className="text-sm text-[var(--muted)] mt-2">
-          All group-stage results in one place. Results are added after each
-          match — check <strong className="text-white">My picks</strong> to see
-          if you got the winner right.
+          Alla gruppmatcher på ett ställe. Resultat läggs in efter varje match —
+          kolla <strong className="text-white">Mina tips</strong> för att se om
+          du hade rätt.
         </p>
         <p className="text-sm text-[var(--accent)] mt-1">
-          {finishedCount} / {matches.length} matches completed
+          {finishedCount} / {matches.length} matcher spelade
         </p>
       </section>
 
       <div className="flex flex-wrap gap-2">
         {(
           [
-            ["all", "All"],
-            ["finished", "Played"],
-            ["upcoming", "Not played yet"],
+            ["all", "Alla"],
+            ["finished", "Spelade"],
+            ["upcoming", "Ej spelade"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -81,19 +81,19 @@ export default function ResultsPage() {
         <select
           value={group}
           onChange={(e) => setGroup(e.target.value)}
-          className="rounded-lg border border-[var(--border)] bg-[var(--card)] px-3 py-1.5 text-sm"
+          className="rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-1.5 text-sm"
         >
-          <option value="all">All groups</option>
+          <option value="all">Alla grupper</option>
           {groups.map((g) => (
             <option key={g} value={g}>
-              Group {g}
+              Grupp {g}
             </option>
           ))}
         </select>
       </div>
 
       {byDay.length === 0 ? (
-        <p className="text-[var(--muted)]">No matches match this filter.</p>
+        <p className="text-[var(--muted)]">Inga matcher matchar filtret.</p>
       ) : (
         byDay.map(([day, dayMatches]) => (
           <section key={day}>
@@ -105,9 +105,9 @@ export default function ResultsPage() {
                 <thead className="bg-[var(--card)] text-left text-[var(--muted)]">
                   <tr>
                     <th className="px-4 py-3">Match</th>
-                    <th className="px-4 py-3 text-center">Result</th>
-                    <th className="px-4 py-3">Outcome</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">Group</th>
+                    <th className="px-4 py-3 text-center">Resultat</th>
+                    <th className="px-4 py-3">Utfall</th>
+                    <th className="px-4 py-3 hidden sm:table-cell">Grupp</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -141,10 +141,10 @@ export default function ResultsPage() {
                               m.homeTeam,
                               m.awayTeam,
                             )
-                          : "Pending"}
+                          : "Väntar"}
                       </td>
                       <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
-                        {m.groupCode ? `Group ${m.groupCode}` : "—"}
+                        {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
                       </td>
                     </tr>
                   ))}

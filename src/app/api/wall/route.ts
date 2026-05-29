@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createWallComment, fetchWallComments } from "@/lib/supabase-wall";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { createWallComment, fetchWallComments } from "@/lib/firestore-wall";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 const MAX_MESSAGE = 500;
 const MAX_NAME = 80;
 const MIN_NAME = 2;
 
 export async function GET() {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -23,9 +23,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -36,13 +36,13 @@ export async function POST(req: NextRequest) {
 
   if (name.length < MIN_NAME || name.length > MAX_NAME) {
     return NextResponse.json(
-      { error: "Enter a name (2–80 characters)." },
+      { error: "Enter a name (2â€“80 characters)." },
       { status: 400 },
     );
   }
   if (message.length < 1 || message.length > MAX_MESSAGE) {
     return NextResponse.json(
-      { error: `Comment must be 1–${MAX_MESSAGE} characters.` },
+      { error: `Comment must be 1â€“${MAX_MESSAGE} characters.` },
       { status: 400 },
     );
   }

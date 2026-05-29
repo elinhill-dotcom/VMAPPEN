@@ -50,7 +50,7 @@ export default function PicksPage() {
     if (!mRes.ok) {
       setLoadError(
         mData.error ??
-          "Could not load matches. Check Supabase settings and run npm run db:seed.",
+          "Kunde inte ladda matcher. Kontrollera Firestore-inställningar och kör npm run db:seed.",
       );
       setMatches([]);
       return;
@@ -159,36 +159,36 @@ export default function PicksPage() {
 
     if (!groupRes.ok || !koRes.ok) {
       setMessage(
-        groupData.error ?? koData.error ?? "Could not save",
+        groupData.error ?? koData.error ?? "Kunde inte spara",
       );
       setMessageWarn(true);
       return;
     }
 
     const parts: string[] = [
-      `Saved! Group: ${groupData.savedCount}/${matches.length} scores.`,
-      `Knockout: ${knockoutFilled}/${KNOCKOUT_PICK_COUNT} picks.`,
+      `Sparat! Grupp: ${groupData.savedCount}/${matches.length} resultat.`,
+      `Slutspel: ${knockoutFilled}/${KNOCKOUT_PICK_COUNT} val.`,
     ];
     if (!knockoutDone) {
       parts.push(
-        "Reminder: Step 2 (Semis · Final · Bronze) is not complete yet!",
+        "Påminnelse: Steg 2 (Semifinal · Final · Brons) är inte klart än!",
       );
       setMessageWarn(true);
     } else if (!groupDone) {
-      parts.push("Reminder: some group scores are still missing.");
+      parts.push("Påminnelse: vissa gruppmatcher saknar fortfarande resultat.");
       setMessageWarn(true);
     }
     setMessage(parts.join(" "));
   }
 
   if (!hydrated) {
-    return <p className="text-[var(--muted)] text-sm">Loading…</p>;
+    return <p className="text-[var(--muted)] text-sm">Laddar…</p>;
   }
 
   if (!player) {
     return (
       <ContinueAsPlayer
-        title="My picks"
+        title="Mina tips"
         onContinue={(p: StoredPlayer) => {
           remember(p);
           load(p.id);
@@ -210,7 +210,7 @@ export default function PicksPage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold">My picks — {player.name}</h2>
+          <h2 className="text-xl font-semibold">Mina tips — {player.name}</h2>
         </div>
         {!locked && (
           <button
@@ -219,7 +219,7 @@ export default function PicksPage() {
             disabled={saving}
             className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save all picks"}
+            {saving ? "Sparar…" : "Spara alla tips"}
           </button>
         )}
       </div>
@@ -238,33 +238,33 @@ export default function PicksPage() {
 
       {loadError && (
         <p className="rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-3 text-sm space-y-2">
-          <strong>Matches could not be loaded.</strong> {loadError}
+          <strong>Matcher kunde inte laddas.</strong> {loadError}
           <span className="block text-[var(--muted)]">
-            Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to
-            .env, run supabase/schema.sql in Supabase, then{" "}
-            <code className="text-white">npm run db:seed</code> and restart the
-            dev server.
+            Lägg till Firebase-variabler i .env (se .env.example), skapa ett
+            Firestore-projekt, kör sedan{" "}
+            <code className="text-white">npm run db:seed</code> och starta om
+            dev-servern.
           </span>
         </p>
       )}
 
       {locked && (
         <p className="rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-2 text-sm">
-          Picks are locked — view only.
+          Tipsen är låsta — endast visning.
         </p>
       )}
 
       {!locked && tab === "group" && groupDone && !knockoutDone && (
         <p className="rounded-lg border border-[var(--danger)]/50 bg-[var(--danger)]/10 px-4 py-3 text-sm">
-          <strong>Don&apos;t stop here!</strong> Group stage looks complete. Open{" "}
+          <strong>Stanna inte här!</strong> Gruppspelet ser klart ut. Öppna{" "}
           <button
             type="button"
             onClick={() => setTab("knockout")}
             className="font-semibold text-[var(--accent)] underline"
           >
-            Step 2: Semis · Final · Bronze
+            Steg 2: Semifinal · Final · Brons
           </button>{" "}
-          ({KNOCKOUT_PICK_COUNT} picks required).
+          ({KNOCKOUT_PICK_COUNT} val krävs).
         </p>
       )}
 
@@ -278,7 +278,7 @@ export default function PicksPage() {
               : "bg-[var(--card)] text-[var(--muted)]"
           }`}
         >
-          Step 1: Group stage
+          Steg 1: Gruppspel
           <span className="ml-1 opacity-80">
             ({filledGroup}/{matches.length})
           </span>
@@ -295,26 +295,26 @@ export default function PicksPage() {
                 : "bg-[var(--danger)]/20 text-white border border-[var(--danger)]/50"
           }`}
         >
-          Step 2: Semis · Final · Bronze
+          Steg 2: Semifinal · Final · Brons
           <span className="ml-1 opacity-80">
             ({knockoutFilled}/{KNOCKOUT_PICK_COUNT})
           </span>
-          {knockoutDone ? " ✓" : " — required"}
+          {knockoutDone ? " ✓" : " — obligatoriskt"}
         </button>
       </div>
 
       {tab === "group" && (
         <>
           <p className="text-sm text-[var(--muted)]">
-            Predict the <strong className="text-white">score</strong> for every
-            group match. Then go to Step 2 for semifinals, final, and bronze.
+            Tippa <strong className="text-white">resultat</strong> för varje
+            gruppmatch. Gå sedan till steg 2 för semifinal, final och brons.
           </p>
           <div className="flex flex-wrap gap-2">
             {(
               [
-                ["all", "All matches"],
-                ["featured", "Our teams (NL SE FR MX)"],
-                ["missing", "Missing scores"],
+                ["all", "Alla matcher"],
+                ["featured", "Våra lag (SE NL FR MX)"],
+                ["missing", "Saknar resultat"],
               ] as const
             ).map(([key, label]) => (
               <button
@@ -334,7 +334,7 @@ export default function PicksPage() {
 
           {matches.length === 0 && !loadError && (
             <p className="text-sm text-[var(--muted)]">
-              Loading matches…
+              Laddar matcher…
             </p>
           )}
 
@@ -369,11 +369,11 @@ export default function PicksPage() {
       {tab === "knockout" && (
         <>
           <p className="text-sm text-[var(--muted)] rounded-lg border border-[var(--accent)]/30 bg-[var(--accent)]/10 px-4 py-3">
-            <strong className="text-white">Step 2 of 2.</strong> Pick which teams
-            reach the semifinals, final, bronze match, and who wins the World Cup.
-            This is separate from group scores — all{" "}
-            <strong className="text-white">{KNOCKOUT_PICK_COUNT} fields</strong>{" "}
-            must be filled.
+            <strong className="text-white">Steg 2 av 2.</strong> Välj vilka lag
+            når semifinal, final, bronsmatch och vem som vinner VM. Detta är
+            separat från grupptips — alla{" "}
+            <strong className="text-white">{KNOCKOUT_PICK_COUNT} fält</strong>{" "}
+            måste fyllas i.
           </p>
           <KnockoutPickForm
             form={knockout}
@@ -390,7 +390,7 @@ export default function PicksPage() {
           disabled={saving}
           className="w-full rounded-lg bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
         >
-          {saving ? "Saving..." : "Save all picks"}
+          {saving ? "Sparar…" : "Spara alla tips"}
         </button>
       )}
     </div>

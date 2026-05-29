@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { fetchLiveMatches } from "@/lib/supabase-matches";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { fetchLiveMatches } from "@/lib/firestore-matches";
+import { isFirestoreConfigured } from "@/lib/firestore-shared";
 
 export async function GET() {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json({ live: [], count: 0 });
   }
 

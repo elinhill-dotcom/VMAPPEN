@@ -18,9 +18,9 @@ export function winnerLabel(
   awayTeam: string,
 ): string {
   const o = getOutcome(home, away);
-  if (o === "draw") return "Draw";
-  if (o === "home") return `${homeTeam} won`;
-  return `${awayTeam} won`;
+  if (o === "draw") return "Oavgjort";
+  if (o === "home") return `${homeTeam} vann`;
+  return `${awayTeam} vann`;
 }
 
 export function evaluatePick(

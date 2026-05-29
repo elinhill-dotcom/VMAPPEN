@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { predictionsLocked } from "@/lib/config";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
-import { findPlayerById } from "@/lib/supabase-players";
+import { findPlayerById } from "@/lib/firestore-players";
 import {
   loadKnockoutPick,
   saveKnockoutPick,
-} from "@/lib/supabase-predictions";
-import { isSupabaseConfigured } from "@/lib/supabase";
+} from "@/lib/firestore-predictions";
+import { isFirestoreConfigured } from "@/lib/firestore";
 import { ALL_TEAMS } from "@/lib/teams";
 
 const validTeams = new Set<string>(ALL_TEAMS);
@@ -17,9 +17,9 @@ function sanitizeTeam(v: unknown): string {
 }
 
 export async function GET(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -38,16 +38,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
 
   if (predictionsLocked()) {
     return NextResponse.json(
-      { error: "Picks are locked — the tournament has started." },
+      { error: "Picks are locked â€” the tournament has started." },
       { status: 403 },
     );
   }

@@ -1,17 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminPassword, requireAdmin } from "@/lib/admin-auth";
+import { getAdminPassword } from "@/lib/admin-auth";
 import { verifyAdminPassword } from "@/lib/config";
 import { isMatchLive } from "@/lib/match-live";
-import { fetchMatchById } from "@/lib/supabase-matches";
-import { insertChatMessage, loadChatMessages } from "@/lib/supabase-chat";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { fetchMatchById } from "@/lib/firestore-matches";
+import {
+  insertChatMessage,
+  loadChatMessages,
+} from "@/lib/firestore-chat-server";
+import { isFirestoreConfigured } from "@/lib/firestore-shared";
 
 type RouteCtx = { params: Promise<{ matchId: string }> };
 
 export async function GET(req: NextRequest, ctx: RouteCtx) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -19,7 +22,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
   const { matchId: raw } = await ctx.params;
   const matchId = Number(raw);
   if (!Number.isInteger(matchId)) {
-    return NextResponse.json({ error: "Invalid match" }, { status: 400 });
+    return NextResponse.json({ error: "Ogiltig match" }, { status: 400 });
   }
 
   const matchRes = await fetchMatchById(matchId);
@@ -27,7 +30,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
     return NextResponse.json({ error: matchRes.error }, { status: 500 });
   }
   if (!matchRes.data) {
-    return NextResponse.json({ error: "Match not found" }, { status: 404 });
+    return NextResponse.json({ error: "Matchen hittades inte" }, { status: 404 });
   }
 
   const since = req.nextUrl.searchParams.get("since") ?? undefined;
@@ -58,14 +61,10 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
   });
 }
 
-/** Admin test mode: send with x-admin-password when chat window is closed. */
 export async function POST(req: NextRequest, ctx: RouteCtx) {
-  const auth = requireAdmin(req);
-  if (auth) return auth;
-
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -73,20 +72,23 @@ export async function POST(req: NextRequest, ctx: RouteCtx) {
   const { matchId: raw } = await ctx.params;
   const matchId = Number(raw);
   if (!Number.isInteger(matchId)) {
-    return NextResponse.json({ error: "Invalid match" }, { status: 400 });
+    return NextResponse.json({ error: "Ogiltig match" }, { status: 400 });
   }
 
   const body = await req.json().catch(() => null);
   if (!body || typeof body.name !== "string" || typeof body.message !== "string") {
-    return NextResponse.json({ error: "Invalid body" }, { status: 400 });
+    return NextResponse.json({ error: "Ogiltig begäran" }, { status: 400 });
   }
 
+  const adminPassword = req.headers.get("x-admin-password") ?? "";
+  const isAdmin = verifyAdminPassword(adminPassword);
+
   const res = await insertChatMessage(matchId, body.name, body.message, {
-    skipLiveCheck: true,
+    skipLiveCheck: isAdmin,
   });
   if (res.error || !res.data) {
     return NextResponse.json(
-      { error: res.error ?? "Could not send" },
+      { error: res.error ?? "Kunde inte skicka" },
       { status: 400 },
     );
   }

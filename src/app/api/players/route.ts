@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findOrCreatePlayerByName, fetchPlayers } from "@/lib/supabase-players";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { findOrCreatePlayerByName, fetchPlayers } from "@/lib/firestore-players";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function POST(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   if (res.error || !res.data) {
     return NextResponse.json(
       { error: res.error ?? "Could not register" },
-      { status: res.error?.includes("2–80") ? 400 : 500 },
+      { status: res.error?.includes("2â€“80") ? 400 : 500 },
     );
   }
 
@@ -25,9 +25,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }

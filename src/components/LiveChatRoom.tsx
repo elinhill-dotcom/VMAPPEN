@@ -20,8 +20,8 @@ import {
   unsubscribeChat,
   type ChatMessage,
   type ChatPresenceUser,
-} from "@/lib/supabase-chat";
-import { isSupabaseConfigured } from "@/lib/supabase";
+} from "@/lib/firestore-chat-client";
+import { isFirestoreConfigured } from "@/lib/firestore-shared";
 
 type MatchInfo = {
   id: number;
@@ -54,7 +54,7 @@ export function LiveChatRoom({ matchId }: Props) {
   const [posting, setPosting] = useState(false);
   const [adminTestMode, setAdminTestMode] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const configured = isSupabaseConfigured();
+  const configured = isFirestoreConfigured();
   const sessionKeyRef = useRef<string>(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -80,7 +80,9 @@ export function LiveChatRoom({ matchId }: Props) {
 
   const loadRoom = useCallback(async () => {
     if (!configured) {
-      setError("Supabase is not configured. Add env variables and restart.");
+      setError(
+        "Firestore är inte konfigurerad. Lägg till env-variabler och starta om.",
+      );
       return;
     }
 
@@ -92,7 +94,7 @@ export function LiveChatRoom({ matchId }: Props) {
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error ?? "Could not load chat");
+      setError(data.error ?? "Kunde inte ladda chatten");
       setLoading(false);
       return;
     }
@@ -118,13 +120,13 @@ export function LiveChatRoom({ matchId }: Props) {
       at: new Date().toISOString(),
     };
 
-    const channel = subscribeToMatchChatRoom(matchId, presence, {
+    const sub = subscribeToMatchChatRoom(matchId, presence, {
       onInsert: (message) => appendMessage(message),
       onPresence: (users) => setPresent(users),
       onStatus: (status) => setConnectionStatus(status),
     });
 
-    return () => unsubscribeChat(channel);
+    return () => unsubscribeChat(sub);
   }, [displayName, hydrated, matchId, configured, loadRoom, appendMessage]);
 
   useEffect(() => {
@@ -162,7 +164,7 @@ export function LiveChatRoom({ matchId }: Props) {
     setPosting(false);
 
     if (res.error || !res.data) {
-      setError(res.error ?? "Could not send");
+      setError(res.error ?? "Kunde inte skicka");
       return;
     }
 
@@ -171,14 +173,14 @@ export function LiveChatRoom({ matchId }: Props) {
   }
 
   if (!hydrated) {
-    return <p className="text-[var(--muted)]">Loading…</p>;
+    return <p className="text-[var(--muted)]">Laddar?</p>;
   }
 
   if (!configured) {
     return (
       <p className="text-sm text-[var(--danger)]">
-        Live chat requires Supabase. Set NEXT_PUBLIC_SUPABASE_URL and
-        NEXT_PUBLIC_SUPABASE_ANON_KEY in your environment.
+        Livechatt kräver Firestore. Lägg till Firebase-variabler i .env (se
+        .env.example).
       </p>
     );
   }
@@ -186,17 +188,17 @@ export function LiveChatRoom({ matchId }: Props) {
   if (!displayName) {
     return (
       <section className="rounded-xl border border-[var(--accent)]/40 bg-[var(--card)] p-6 max-w-md">
-        <h2 className="text-lg font-semibold mb-2">Join live chat</h2>
+        <h2 className="text-lg font-semibold mb-2">Gå med i livechatten</h2>
         <p className="text-sm text-[var(--muted)] mb-4">
-          Enter your name before entering the chat. Colleagues in this room are
-          watching the same match.
+          Skriv ditt namn innan du går in. Kollegor i rummet tittar på samma
+          match.
         </p>
         <form onSubmit={joinChat} className="flex flex-wrap gap-3">
           <input
             type="text"
             value={nameInput}
             onChange={(e) => setNameInput(e.target.value)}
-            placeholder="Your name"
+            placeholder="Ditt namn"
             className="flex-1 min-w-[180px] rounded-lg border border-[var(--border)] bg-[var(--bg)] px-4 py-2"
             required
             minLength={2}
@@ -207,7 +209,7 @@ export function LiveChatRoom({ matchId }: Props) {
             type="submit"
             className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-[var(--accent-foreground)]"
           >
-            Enter chat
+            Gå in i chatten
           </button>
         </form>
       </section>
@@ -220,7 +222,7 @@ export function LiveChatRoom({ matchId }: Props) {
     match.homeScore !== null &&
     match.awayScore !== null;
   const scoreLabel = hasFinalScore
-    ? `${match.homeScore} – ${match.awayScore}`
+    ? `${match.homeScore} ? ${match.awayScore}`
     : "vs";
 
   return (
@@ -232,7 +234,7 @@ export function LiveChatRoom({ matchId }: Props) {
               href="/live"
               className="text-xs text-[var(--muted)] hover:text-white"
             >
-              ← All live matches
+              ? Alla live-matcher
             </Link>
             {match && (
               <>
@@ -243,35 +245,36 @@ export function LiveChatRoom({ matchId }: Props) {
                 </p>
                 <p className="text-xs text-[var(--muted)] mt-1">
                   {formatCestMatchKickoff(match.kickoffAt)}
-                  {match.groupCode ? ` · Group ${match.groupCode}` : ""}
-                  {!hasFinalScore && " · Result on Results page after the match"}
+                  {match.groupCode ? ` · Grupp ${match.groupCode}` : ""}
+                  {!hasFinalScore &&
+                    " · Resultat på Resultat-sidan efter matchen"}
                 </p>
               </>
             )}
             {loading && !match && (
-              <p className="text-sm text-[var(--muted)] mt-2">Loading match…</p>
+              <p className="text-sm text-[var(--muted)] mt-2">Laddar match?</p>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
             {live ? (
               adminTestMode ? (
-                <span className="live-badge">ADMIN TEST</span>
+                <span className="live-badge">ADMINTEST</span>
               ) : (
                 <span className="live-badge">LIVE</span>
               )
             ) : (
-              <span className="text-xs text-[var(--muted)]">Chat closed</span>
+              <span className="text-xs text-[var(--muted)]">Chatten stängd</span>
             )}
             <span className="text-xs text-[var(--muted)]">
-              Chatting as <strong className="text-white">{displayName}</strong>
+              Chattar som <strong className="text-white">{displayName}</strong>
             </span>
             {connectionStatus === "SUBSCRIBED" && (
-              <span className="text-xs text-green-400">Connected</span>
+              <span className="text-xs text-green-400">Ansluten</span>
             )}
             {connectionStatus && connectionStatus !== "SUBSCRIBED" && (
               <span className="text-xs text-[var(--muted)]">
                 {connectionStatus === "CHANNEL_ERROR"
-                  ? "Reconnecting…"
+                  ? "Återansluter?"
                   : connectionStatus}
               </span>
             )}
@@ -283,13 +286,13 @@ export function LiveChatRoom({ matchId }: Props) {
               }}
               className="text-xs text-[var(--muted)] underline"
             >
-              Change name
+              Byt namn
             </button>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-[var(--muted)]">
-            In this room:{" "}
+            I rummet:{" "}
             <strong className="text-white">{present.length}</strong>
           </p>
           {present.length > 0 && (
@@ -300,14 +303,14 @@ export function LiveChatRoom({ matchId }: Props) {
         </div>
         {!live && (
           <p className="text-sm text-[var(--danger)] mt-3">
-            Chat is closed (opens 15 min before, closes 2 h after kickoff). You
-            can read old messages but cannot post new ones.
+            Chatten är stängd (öppnar 15 min före, stänger 2 h efter avspark).
+            Du kan läsa gamla meddelanden men inte skriva nya.
           </p>
         )}
         {adminTestMode && (
           <p className="text-sm text-amber-300/90 mt-3">
-            Admin test mode — chat is open for you only; colleagues still see
-            the normal schedule.
+            Admintestläge ? chatten är öppen för dig; kollegor ser fortfarande
+            det vanliga schemat.
           </p>
         )}
       </div>
@@ -316,11 +319,11 @@ export function LiveChatRoom({ matchId }: Props) {
         <ul className="flex-1 overflow-y-auto p-4 space-y-3">
           {loading && messages.length === 0 ? (
             <li className="text-sm text-[var(--muted)] text-center py-8">
-              Loading messages…
+              Laddar meddelanden?
             </li>
           ) : messages.length === 0 ? (
             <li className="text-sm text-[var(--muted)] text-center py-8">
-              No messages yet — say hello!
+              Inga meddelanden än ? säg hej!
             </li>
           ) : (
             messages.map((m) => (
@@ -337,7 +340,7 @@ export function LiveChatRoom({ matchId }: Props) {
                     {m.name}
                   </span>
                   <time>
-                    {new Date(m.createdAt).toLocaleTimeString("en-GB", {
+                    {new Date(m.createdAt).toLocaleTimeString("sv-SE", {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
@@ -361,7 +364,7 @@ export function LiveChatRoom({ matchId }: Props) {
               type="text"
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Write a message…"
+              placeholder="Skriv ett meddelande?"
               maxLength={400}
               className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 text-sm"
             />
@@ -370,7 +373,7 @@ export function LiveChatRoom({ matchId }: Props) {
               disabled={posting || !text.trim()}
               className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
             >
-              Send
+              Skicka
             </button>
           </form>
         )}

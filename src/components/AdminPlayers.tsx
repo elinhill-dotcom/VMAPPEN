@@ -33,7 +33,7 @@ export function AdminPlayers({ password, onMessage }: Props) {
     const data = await res.json();
     setLoading(false);
     if (!res.ok) {
-      onMessage(data.error ?? "Could not load players", true);
+      onMessage(data.error ?? "Kunde inte ladda spelare", true);
       return;
     }
     setPlayers(data.players);
@@ -60,17 +60,17 @@ export function AdminPlayers({ password, onMessage }: Props) {
     });
     const data = await res.json();
     if (!res.ok) {
-      onMessage(data.error ?? "Rename failed", true);
+      onMessage(data.error ?? "Kunde inte byta namn", true);
       return;
     }
-    onMessage(`Renamed to "${data.player.name}".`);
+    onMessage(`Namn ändrat till "${data.player.name}".`);
     load();
   }
 
   async function clearPicks(playerId: string, playerName: string) {
     if (
       !confirm(
-        `Clear all picks for ${playerName}? They can fill them in again from My picks.`,
+        `Rensa alla tips för ${playerName}? De kan fylla i igen under Mina tips.`,
       )
     ) {
       return;
@@ -83,17 +83,17 @@ export function AdminPlayers({ password, onMessage }: Props) {
     });
     const data = await res.json();
     if (!res.ok) {
-      onMessage(data.error ?? "Clear failed", true);
+      onMessage(data.error ?? "Kunde inte rensa", true);
       return;
     }
-    onMessage(`Cleared picks for ${playerName}.`);
+    onMessage(`Tips rensade för ${playerName}.`);
     load();
   }
 
   async function remove(playerId: string, playerName: string) {
     if (
       !confirm(
-        `Delete ${playerName} completely? This removes them from the pool and scoreboard.`,
+        `Ta bort ${playerName} helt? De försvinner från poolen och topplistan.`,
       )
     ) {
       return;
@@ -105,17 +105,17 @@ export function AdminPlayers({ password, onMessage }: Props) {
     });
     const data = await res.json();
     if (!res.ok) {
-      onMessage(data.error ?? "Delete failed", true);
+      onMessage(data.error ?? "Kunde inte ta bort", true);
       return;
     }
-    onMessage(`Removed ${playerName}.`);
+    onMessage(`${playerName} borttagen.`);
     load();
   }
 
   if (!password) {
     return (
       <p className="text-sm text-[var(--muted)]">
-        Enter the admin password above to manage players.
+        Ange adminlösenordet ovan för att hantera spelare.
       </p>
     );
   }
@@ -123,20 +123,20 @@ export function AdminPlayers({ password, onMessage }: Props) {
   return (
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted)]">
-        Fix duplicate sign-ups, rename typos, or let someone redo their picks
-        before the tournament starts.
+        Rätta dubbletter, byt namn vid stavfel, eller låt någon fylla i tipsen
+        igen innan turneringen startar.
         {locked && (
           <span className="block mt-2 text-[var(--danger)]">
-            Picks are locked — you can still rename or delete players, but not
-            clear picks.
+            Tipsen är låsta — du kan fortfarande byta namn eller ta bort spelare,
+            men inte rensa tips.
           </span>
         )}
       </p>
 
       {loading && players.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">Loading…</p>
+        <p className="text-sm text-[var(--muted)]">Laddar…</p>
       ) : players.length === 0 ? (
-        <p className="text-sm text-[var(--muted)]">No players yet.</p>
+        <p className="text-sm text-[var(--muted)]">Inga spelare ännu.</p>
       ) : (
         <ul className="space-y-3">
           {players.map((p) => (
@@ -160,13 +160,13 @@ export function AdminPlayers({ password, onMessage }: Props) {
                   disabled={edits[p.id]?.trim() === p.name}
                   className="rounded-lg bg-[var(--accent)] px-3 py-2 text-sm font-medium text-[var(--accent-foreground)] disabled:opacity-40"
                 >
-                  Save name
+                  Spara namn
                 </button>
               </div>
               <p className="text-xs text-[var(--muted)] mb-3">
-                Joined {new Date(p.createdAt).toLocaleString("en-GB")} · Group
-                picks {p.groupPicksCount}/72
-                {p.hasKnockoutPick ? " · Knockout filled" : " · No knockout picks"}
+                Gick med {new Date(p.createdAt).toLocaleString("sv-SE")} ·
+                Grupptips {p.groupPicksCount}/72
+                {p.hasKnockoutPick ? " · Slutspel ifyllt" : " · Inget slutspel"}
               </p>
               <div className="flex flex-wrap gap-2">
                 <button
@@ -175,14 +175,14 @@ export function AdminPlayers({ password, onMessage }: Props) {
                   disabled={locked}
                   className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm disabled:opacity-40"
                 >
-                  Clear picks
+                  Rensa tips
                 </button>
                 <button
                   type="button"
                   onClick={() => remove(p.id, p.name)}
                   className="rounded-lg border border-[var(--danger)]/50 text-[var(--danger)] px-3 py-1.5 text-sm hover:bg-[var(--danger)]/10"
                 >
-                  Delete player
+                  Ta bort spelare
                 </button>
               </div>
             </li>
@@ -195,7 +195,7 @@ export function AdminPlayers({ password, onMessage }: Props) {
         onClick={load}
         className="text-sm text-[var(--muted)] underline hover:text-white"
       >
-        Refresh list
+        Uppdatera listan
       </button>
     </div>
   );

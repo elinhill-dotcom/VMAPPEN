@@ -41,7 +41,7 @@ export function SupporterWall() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Could not post");
+        setError(data.error ?? "Kunde inte publicera");
         return;
       }
       setMessage("");
@@ -56,10 +56,10 @@ export function SupporterWall() {
       <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 mb-4">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <span aria-hidden>📣</span>
-          Supporter Wall
+          Hejaropps vägg
         </h2>
         <p className="text-xs text-[var(--muted)] mt-1">
-          Cheer, banter, or hype — keep it friendly.
+          Heja, skämt eller hype — håll det trevligt.
         </p>
       </div>
 
@@ -68,7 +68,7 @@ export function SupporterWall() {
         className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3 mb-4 shrink-0"
       >
         <label className="block text-sm">
-          <span className="text-[var(--muted)]">Your name</span>
+          <span className="text-[var(--muted)]">Ditt namn</span>
           <input
             type="text"
             value={name}
@@ -76,19 +76,19 @@ export function SupporterWall() {
             required
             minLength={2}
             maxLength={80}
-            placeholder="Name"
+            placeholder="Namn"
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2"
           />
         </label>
         <label className="block text-sm">
-          <span className="text-[var(--muted)]">Comment</span>
+          <span className="text-[var(--muted)]">Kommentar</span>
           <textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
             maxLength={500}
             rows={3}
-            placeholder="Come on Sweden! / Good luck everyone!"
+            placeholder="Heja Sverige! / Lycka till allihopa!"
             className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 resize-y"
           />
         </label>
@@ -101,18 +101,18 @@ export function SupporterWall() {
           disabled={posting}
           className="w-full rounded-lg bg-[var(--accent)] py-2 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
         >
-          {posting ? "Posting…" : "Post to wall"}
+          {posting ? "Publicerar…" : "Publicera på väggen"}
         </button>
       </form>
 
       <div className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden flex flex-col min-h-0">
         <p className="text-xs text-[var(--muted)] px-4 py-2 border-b border-[var(--border)] shrink-0">
-          {comments.length} message{comments.length === 1 ? "" : "s"}
+          {comments.length} meddelande{comments.length === 1 ? "" : "n"}
         </p>
         <ul className="overflow-y-auto flex-1 p-3 space-y-3 max-h-[420px] lg:max-h-none">
           {comments.length === 0 ? (
             <li className="text-sm text-[var(--muted)] text-center py-8">
-              Be the first to post!
+              Var först med att skriva något!
             </li>
           ) : (
             comments.map((c) => (
@@ -125,7 +125,7 @@ export function SupporterWall() {
                     {c.name}
                   </span>
                   <time className="text-[10px] text-[var(--muted)] shrink-0">
-                    {new Date(c.createdAt).toLocaleString("en-GB", {
+                    {new Date(c.createdAt).toLocaleString("sv-SE", {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",

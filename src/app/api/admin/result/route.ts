@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminPassword } from "@/lib/config";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
-import { updateMatchResult } from "@/lib/supabase-matches";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { updateMatchResult } from "@/lib/firestore-matches";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 const validGroupIds = new Set(GROUP_MATCH_IDS);
 
@@ -12,9 +12,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Wrong admin password" }, { status: 401 });
   }
 
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }

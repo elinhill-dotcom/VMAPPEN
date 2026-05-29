@@ -1,4 +1,4 @@
-/** Supabase row shapes (snake_case). */
+/** Firestore document shapes (snake_case). */
 
 export type PlayerRow = {
   id: string;

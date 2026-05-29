@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMatches } from "@/lib/supabase-matches";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { fetchMatches } from "@/lib/firestore-matches";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Supabase is not configured." },
+      { error: "Firestore är inte konfigurerad." },
       { status: 503 },
     );
   }
@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   const res = await fetchMatches(stage ? { stage } : undefined);
   if (res.error || !res.data) {
     return NextResponse.json(
-      { error: res.error ?? "Failed to load matches" },
+      { error: res.error ?? "Kunde inte ladda matcher" },
       { status: 500 },
     );
   }
