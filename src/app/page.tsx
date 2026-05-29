@@ -9,7 +9,6 @@ import { usePlayerSession } from "@/hooks/usePlayerSession";
 type Config = {
   locked: boolean;
   lockAt: string;
-  jarContributionEur: number;
   pointsExact: number;
   pointsOutcome: number;
   knockoutPoints: {
@@ -80,12 +79,6 @@ export default function HomePage() {
             gruppspelet!
           </li>
           <li>
-            Inträde:{" "}
-            <strong className="text-[var(--accent)]">
-              {config?.jarContributionEur ?? 100} kr i potten
-            </strong>
-          </li>
-          <li>
             Grupppoäng:{" "}
             <strong className="text-white">{config?.pointsExact ?? 3}</strong>{" "}
             för exakt resultat,{" "}
@@ -100,17 +93,14 @@ export default function HomePage() {
             </li>
           )}
           <li>
-            Matcher med{" "}
-            <strong className="text-white">
-              Sverige, Nederländerna, Frankrike eller Mexiko
-            </strong>{" "}
-            markeras på tips-sidan.
+            <strong className="text-white">Sveriges matcher</strong> markeras på
+            tips-sidan.
           </li>
           <li>
             <strong className="text-white">Livechatt:</strong> öppnar{" "}
             <strong className="text-white">15 min före</strong> avspark, stänger{" "}
             <strong className="text-white">2 timmar efter</strong> — chatta med
-            kollegor under matchen.
+            familjen under matchen.
           </li>
           <li>
             <strong className="text-white">Resultat:</strong> alla matchresultat
@@ -177,7 +167,7 @@ export default function HomePage() {
         </section>
       ) : (
         <ContinueAsPlayer
-          title="Gå med i poolen"
+          title="Gå med i tipset"
           onContinue={remember}
         />
       )}

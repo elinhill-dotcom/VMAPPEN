@@ -5,5 +5,6 @@ dev.db-journal
 .env
 .env.local
 .env*.local
+scripts/service-account.json
 *.db
 *.db-journal

@@ -313,7 +313,7 @@ export default function PicksPage() {
             {(
               [
                 ["all", "Alla matcher"],
-                ["featured", "Våra lag (SE NL FR MX)"],
+                ["featured", "Sveriges matcher"],
                 ["missing", "Saknar resultat"],
               ] as const
             ).map(([key, label]) => (

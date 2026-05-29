@@ -30,7 +30,7 @@ export function SiteHeader() {
       <div className="site-header__banner-wrap">
         <Image
           src="/super-vmapp-banner.png"
-          alt="SUPER VMAPP — kontorspool för Fotbolls-VM 2026"
+          alt="SUPER VMAPP — familjetipset för Fotbolls-VM 2026"
           width={1200}
           height={630}
           className="site-header__banner"
@@ -50,7 +50,7 @@ export function SiteHeader() {
       <div className="site-header__tagline-bar">
         <p className="site-header__tagline">
           <span className="site-header__tagline-flag" aria-hidden />
-          Kontorspool · 100 kr i potten · Tippa · Heja · Vinn
+          Familjetipset · Tippa · Heja Sverige · Ha kul
           <span className="site-header__tagline-flag site-header__tagline-flag--right" aria-hidden />
         </p>
       </div>

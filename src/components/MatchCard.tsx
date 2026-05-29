@@ -64,7 +64,7 @@ export function MatchCard({
         <span>{STAGE_LABELS[match.stage] ?? match.stage}</span>
         {featured && (
           <span className="rounded bg-[var(--accent)] px-2 py-0.5 font-bold text-[var(--accent-foreground)] border border-[#0a1420] shadow-[2px_2px_0_#0a1420]">
-            Våra lag — SE · NL · FR · MX
+            Sverigematch
           </span>
         )}
         {live && <span className="live-badge">LIVE</span>}
@@ -131,7 +131,7 @@ export function MatchCard({
           href={`/live/${match.id}`}
           className="mt-3 flex items-center justify-center gap-2 rounded-lg bg-[var(--accent)] py-2 text-sm font-semibold text-[var(--accent-foreground)] hover:opacity-90"
         >
-          Livechatt — chatta med kollegor
+          Livechatt — chatta med familjen
         </Link>
       )}
     </article>

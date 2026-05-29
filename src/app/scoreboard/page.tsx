@@ -16,35 +16,46 @@ type Entry = {
 
 export default function ScoreboardPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [jarTotalEur, setJarTotalEur] = useState(0);
-  const [jarContributionEur, setJarContributionEur] = useState(100);
-  const [playerCount, setPlayerCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/leaderboard")
-      .then((r) => r.json())
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          throw new Error(
+            typeof data.error === "string"
+              ? data.error
+              : "Kunde inte ladda topplistan",
+          );
+        }
+        return data;
+      })
       .then((data) => {
-        setEntries(data.entries);
-        setJarTotalEur(data.jarTotalEur);
-        setJarContributionEur(data.jarContributionEur);
-        setPlayerCount(data.playerCount);
-      });
+        setEntries(Array.isArray(data.entries) ? data.entries : []);
+        setError("");
+      })
+      .catch((e) => {
+        setEntries([]);
+        setError(
+          e instanceof Error ? e.message : "Kunde inte ladda topplistan",
+        );
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   return (
     <div className="scoreboard-page">
       <div className="scoreboard-page__main space-y-6">
-        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-5">
-          <p className="text-[var(--muted)] text-sm">Pott</p>
-          <p className="text-3xl font-bold text-[var(--accent)]">{jarTotalEur} kr</p>
-          <p className="text-sm text-[var(--muted)] mt-1">
-            {playerCount} deltagare × {jarContributionEur} kr var
-          </p>
-        </div>
-
         <section>
           <h2 className="burst-heading mb-4">Topplista</h2>
-          {entries.length === 0 ? (
+          {error && (
+            <p className="text-sm text-[var(--danger)] mb-3">{error}</p>
+          )}
+          {loading ? (
+            <p className="text-[var(--muted)]">Laddar topplista…</p>
+          ) : entries.length === 0 ? (
             <p className="text-[var(--muted)]">Ingen har gått med ännu.</p>
           ) : (
             <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
@@ -95,8 +106,7 @@ export default function ScoreboardPage() {
           )}
 
           <p className="text-xs text-[var(--muted)] mt-3">
-            Vid lika poäng: flest exakta grupptips. Dela potten som ni kommer
-            överens (t.ex. 60 % / 30 % / 10 % till topp 3).
+            Vid lika poäng: flest exakta grupptips vinner.
           </p>
         </section>
       </div>

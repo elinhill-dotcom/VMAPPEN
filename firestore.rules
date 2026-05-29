@@ -1,7 +1,7 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Office pool without auth — open read/write (use only with trusted users)
+    // Family tipping app without auth — open read/write (trusted users only)
     match /{document=**} {
       allow read, write: if true;
     }

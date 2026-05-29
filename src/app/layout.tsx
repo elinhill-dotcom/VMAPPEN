@@ -12,9 +12,9 @@ const displayFont = Luckiest_Guy({
 });
 
 export const metadata: Metadata = {
-  title: "SUPER VMAPP — Kontorspool VM 2026",
+  title: "SUPER VMAPP — Familjetipset VM 2026",
   description:
-    "Tippa gruppmatcher och slutspel. 100 kr i potten. Heja Sverige!",
+    "Tippa gruppmatcher och slutspel tillsammans. Heja Sverige!",
 };
 
 export default function RootLayout({

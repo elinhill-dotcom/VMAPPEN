@@ -1,4 +1,5 @@
 import type { MatchView } from "@/components/MatchCard";
+import { isFeaturedMatch } from "@/lib/teams";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
 import type {
   ChatMessageRow,
@@ -42,7 +43,7 @@ export function mapMatch(row: MatchRow): MatchView {
     awayTeam: row.away_team,
     groupCode: row.group_code,
     stage: row.stage,
-    featured: row.featured,
+    featured: isFeaturedMatch(row.home_team, row.away_team),
     homeScore: row.home_score,
     awayScore: row.away_score,
     finished: row.finished,

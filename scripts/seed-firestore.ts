@@ -3,7 +3,10 @@
  * NEXT_PUBLIC_FIREBASE_PROJECT_ID, FIREBASE_SERVICE_ACCOUNT_JSON
  * Run: npm run db:seed
  */
+import { loadEnvFiles } from "./load-env";
 import { cert, initializeApp } from "firebase-admin/app";
+
+loadEnvFiles();
 import { getFirestore } from "firebase-admin/firestore";
 import { isFeaturedMatch } from "../src/lib/teams";
 import { toEnglishTeam } from "../src/lib/team-names";

@@ -87,7 +87,7 @@ export default function LivePage() {
           Chatten öppnar <strong className="text-white">15 minuter före</strong>{" "}
           avspark och stänger{" "}
           <strong className="text-white">2 timmar efter</strong> avspark. Chatta
-          med kollegor — resultat publiceras på Resultat-sidan.
+          med familjen — resultat publiceras på Resultat-sidan.
         </p>
       </section>
 

@@ -93,7 +93,7 @@ export function AdminPlayers({ password, onMessage }: Props) {
   async function remove(playerId: string, playerName: string) {
     if (
       !confirm(
-        `Ta bort ${playerName} helt? De försvinner från poolen och topplistan.`,
+        `Ta bort ${playerName} helt? De försvinner från tipset och topplistan.`,
       )
     ) {
       return;

@@ -1,4 +1,4 @@
-# VM 2026 — Kontorspool
+# VM 2026 — Familjetipset (SUPER VMAPP)
 
 Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, svenska flaggfärger, Firestore som databas.
 
@@ -27,7 +27,7 @@ Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, sven
 - **Ingen inloggning** — spelare anger namn, sparas i `localStorage` (`vmapp_player`)
 - **Grupptips** — 72 matcher
 - **Slutspel** — semifinal, final, brons, mästare (9 val)
-- **Topplista** — poäng och pott (100 kr per deltagare)
+- **Topplista** — poäng för alla i familjen
 - **Livechatt** — öppen 15 min före till 2 h efter avspark
 - **Hejaropps vägg** — kommentarer vid topplistan
 - **Admin** — resultat, slutspelssvar, spelare

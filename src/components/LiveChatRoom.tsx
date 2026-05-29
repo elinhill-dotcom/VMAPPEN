@@ -190,7 +190,7 @@ export function LiveChatRoom({ matchId }: Props) {
       <section className="rounded-xl border border-[var(--accent)]/40 bg-[var(--card)] p-6 max-w-md">
         <h2 className="text-lg font-semibold mb-2">Gå med i livechatten</h2>
         <p className="text-sm text-[var(--muted)] mb-4">
-          Skriv ditt namn innan du går in. Kollegor i rummet tittar på samma
+          Skriv ditt namn innan du går in. Familjen i rummet tittar på samma
           match.
         </p>
         <form onSubmit={joinChat} className="flex flex-wrap gap-3">
@@ -309,7 +309,7 @@ export function LiveChatRoom({ matchId }: Props) {
         )}
         {adminTestMode && (
           <p className="text-sm text-amber-300/90 mt-3">
-            Admintestläge ? chatten är öppen för dig; kollegor ser fortfarande
+            Admintestläge ? chatten är öppen för dig; familjen ser fortfarande
             det vanliga schemat.
           </p>
         )}
