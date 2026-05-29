@@ -378,19 +378,22 @@ export async function fetchMatches(
   opts?: { stage?: string },
 ): Promise<DbResult<ReturnType<typeof mapMatch>[]>> {
   try {
-    let q = getAdminFirestore()
+    // Hämta alla och filtrera stage i minnet — undviker composite index
+    // (stage + kickoff_at) som ofta saknas i nya Firebase-projekt.
+    const snap = await getAdminFirestore()
       .collection(COLLECTIONS.matches)
-      .orderBy("kickoff_at");
+      .orderBy("kickoff_at")
+      .get();
+    let rows = snap.docs.map(
+      (doc) => ({ id: Number(doc.id), ...doc.data() } as MatchRow),
+    );
     if (opts?.stage) {
-      q = q.where("stage", "==", opts.stage) as typeof q;
+      rows = rows.filter((r) => r.stage === opts.stage);
     }
-    const snap = await q.get();
-    const rows = snap.docs
-      .map((doc) => ({ id: Number(doc.id), ...doc.data() } as MatchRow))
-      .sort((a, b) => {
-        const t = a.kickoff_at.localeCompare(b.kickoff_at);
-        return t !== 0 ? t : a.id - b.id;
-      });
+    rows.sort((a, b) => {
+      const t = String(a.kickoff_at).localeCompare(String(b.kickoff_at));
+      return t !== 0 ? t : a.id - b.id;
+    });
     return { data: rows.map(mapMatch), error: null };
   } catch (e) {
     return { data: null, error: toErrorMessage(e) };

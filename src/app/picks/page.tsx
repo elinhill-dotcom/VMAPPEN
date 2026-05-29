@@ -33,9 +33,11 @@ export default function PicksPage() {
   const [message, setMessage] = useState("");
   const [messageWarn, setMessageWarn] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const [matchesLoaded, setMatchesLoaded] = useState(false);
 
   const load = useCallback(async (playerId: string) => {
     setLoadError("");
+    setMatchesLoaded(false);
     const [mRes, pRes, kRes, cRes] = await Promise.all([
       fetch("/api/matches?stage=group"),
       fetch(`/api/predictions?playerId=${playerId}`),
@@ -53,14 +55,23 @@ export default function PicksPage() {
           "Kunde inte ladda matcher. Kontrollera Firestore-inställningar och kör npm run db:seed.",
       );
       setMatches([]);
+      setMatchesLoaded(true);
       return;
     }
 
-    const ms = mData.matches as MatchView[];
+    const ms = (mData.matches as MatchView[]) ?? [];
+    setMatchesLoaded(true);
+    if (ms.length === 0) {
+      setLoadError(
+        "Inga gruppmatcher i databasen. Kör npm run db:seed och ladda om sidan.",
+      );
+      setMatches([]);
+      return;
+    }
     const predictions = pData.predictions ?? [];
     const pick = kData.pick;
 
-    setMatches(ms ?? []);
+    setMatches(ms);
     setLocked(cfg.locked);
 
     const map: PredMap = {};
@@ -332,10 +343,8 @@ export default function PicksPage() {
             ))}
           </div>
 
-          {matches.length === 0 && !loadError && (
-            <p className="text-sm text-[var(--muted)]">
-              Laddar matcher…
-            </p>
+          {matches.length === 0 && !loadError && !matchesLoaded && (
+            <p className="text-sm text-[var(--muted)]">Laddar matcher…</p>
           )}
 
           {byDay.map(([day, dayMatches]) => (
