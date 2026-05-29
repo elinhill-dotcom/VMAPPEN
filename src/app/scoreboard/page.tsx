@@ -16,6 +16,9 @@ type Entry = {
 
 export default function ScoreboardPage() {
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [jarTotal, setJarTotal] = useState(0);
+  const [jarPerPlayer, setJarPerPlayer] = useState(100);
+  const [playerCount, setPlayerCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -34,6 +37,9 @@ export default function ScoreboardPage() {
       })
       .then((data) => {
         setEntries(Array.isArray(data.entries) ? data.entries : []);
+        setJarTotal(data.jarTotalEur ?? 0);
+        setJarPerPlayer(data.jarContributionEur ?? 100);
+        setPlayerCount(data.playerCount ?? 0);
         setError("");
       })
       .catch((e) => {
@@ -50,6 +56,19 @@ export default function ScoreboardPage() {
       <div className="scoreboard-page__main space-y-6">
         <section>
           <h2 className="burst-heading mb-4">Topplista</h2>
+
+          <div className="rounded-xl border border-[var(--accent)]/40 bg-[var(--card)] p-5 mb-6">
+            <p className="text-[var(--muted)] text-sm">Potten</p>
+            <p className="text-3xl font-bold text-[var(--accent)]">
+              {loading ? "…" : `${jarTotal} kr`}
+            </p>
+            <p className="text-sm text-[var(--muted)] mt-1">
+              {loading
+                ? "Laddar…"
+                : `${playerCount} deltagare × ${jarPerPlayer} kr`}
+            </p>
+          </div>
+
           {error && (
             <p className="text-sm text-[var(--danger)] mb-3">{error}</p>
           )}
