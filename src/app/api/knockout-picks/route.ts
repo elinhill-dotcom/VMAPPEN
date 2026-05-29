@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { predictionsLocked } from "@/lib/config";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
-import { findPlayerById } from "@/lib/firestore-players";
+import { findPlayerById } from "@/lib/firestore";
 import {
   loadKnockoutPick,
   saveKnockoutPick,
-} from "@/lib/firestore-predictions";
+} from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 import { ALL_TEAMS } from "@/lib/teams";
 

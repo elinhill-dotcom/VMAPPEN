@@ -3,14 +3,14 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { predictionsLocked } from "@/lib/config";
 import {
   clearPlayerPicks,
-} from "@/lib/firestore-predictions";
+} from "@/lib/firestore";
 import {
   deletePlayer,
   fetchAdminPlayers,
   findPlayerById,
   isPlayerNameTaken,
   renamePlayer,
-} from "@/lib/firestore-players";
+} from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {

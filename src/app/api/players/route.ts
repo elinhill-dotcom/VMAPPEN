@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { findOrCreatePlayerByName, fetchPlayers } from "@/lib/firestore-players";
+import { findOrCreatePlayerByName, fetchPlayers } from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function POST(req: NextRequest) {

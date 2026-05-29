@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminPassword } from "@/lib/admin-auth";
 import { verifyAdminPassword } from "@/lib/config";
 import { isMatchLive } from "@/lib/match-live";
-import { fetchMatchById } from "@/lib/firestore-matches";
+import { fetchMatchById } from "@/lib/firestore";
 import {
   insertChatMessage,
   loadChatMessages,
-} from "@/lib/firestore-chat-server";
-import { isFirestoreConfigured } from "@/lib/firestore-shared";
+} from "@/lib/firestore";
+import { isFirestoreConfigured } from "@/lib/firestore";
 
 type RouteCtx = { params: Promise<{ matchId: string }> };
 

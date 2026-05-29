@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { predictionsLocked } from "@/lib/config";
-import { findPlayerById } from "@/lib/firestore-players";
+import { findPlayerById } from "@/lib/firestore";
 import {
   loadGroupPredictions,
   saveGroupPredictions,
-} from "@/lib/firestore-predictions";
+} from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {

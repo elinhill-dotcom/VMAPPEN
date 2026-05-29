@@ -5,24 +5,19 @@ Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, sven
 ## Kom igång
 
 1. Skapa ett [Firebase-projekt](https://console.firebase.google.com/) och aktivera **Firestore**.
-2. Kopiera `.env.example` till `.env.local` och fyll i:
-   - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-   - `NEXT_PUBLIC_FIREBASE_API_KEY`
-   - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-   - `NEXT_PUBLIC_FIREBASE_APP_ID`
-   - `FIREBASE_SERVICE_ACCOUNT_JSON` (hela JSON från Service accounts → Generate new private key)
-   - `ADMIN_PASSWORD`
-3. Publicera regler och index:
+2. Kopiera `.env.example` till `.env.local` och fyll i alla `NEXT_PUBLIC_FIREBASE_*` (se `.env.example`) samt `FIREBASE_SERVICE_ACCOUNT_JSON` och `ADMIN_PASSWORD`.
+3. Firestore-kollektioner: `players`, `matches`, `predictions`, `chat_messages` (plus `knockout_picks`, `knockout_answer`, `wall_comments` för slutspel och vägg).
+4. Publicera regler och index:
    ```bash
    firebase deploy --only firestore
    ```
    (eller klistra in `firestore.rules` manuellt i Firebase Console)
-4. Seed matcher:
+5. Seed matcher:
    ```bash
    npm install
    npm run db:seed
    ```
-5. Starta appen:
+6. Starta appen:
    ```bash
    npm run dev
    ```
@@ -40,5 +35,6 @@ Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, sven
 ## Teknik
 
 - Next.js 15, React 19, Tailwind 4
-- Firestore (firebase + firebase-admin)
-- Realtid i chatten via Firestore `onSnapshot`
+- `src/lib/firebase.ts` — klientconfig + `onSnapshot` för livechatt
+- `src/lib/firestore.ts` — server-CRUD (firebase-admin)
+- Ingen auth — endast visningsnamn

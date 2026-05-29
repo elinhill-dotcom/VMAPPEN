@@ -14,8 +14,7 @@ import type {
   PlayerRow,
   PredictionRow,
 } from "@/lib/firestore-types";
-import { getFirestoreServer } from "@/lib/firestore-admin";
-import { toErrorMessage, type DbResult } from "@/lib/firestore-shared";
+import { getAdminFirestore, toErrorMessage, type DbResult } from "@/lib/firestore";
 
 export type LeaderboardEntry = {
   playerId: string;
@@ -32,7 +31,7 @@ export async function computeLeaderboard(): Promise<
   DbResult<LeaderboardEntry[]>
 > {
   try {
-    const db = getFirestoreServer();
+    const db = getAdminFirestore();
 
     const [playersSnap, predsSnap, koPicksSnap, koAnswerDoc, matchesSnap] =
       await Promise.all([

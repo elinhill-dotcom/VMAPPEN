@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchMatches } from "@/lib/firestore-matches";
+import { fetchMatches } from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {

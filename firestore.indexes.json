@@ -3,23 +3,17 @@
     {
       "collectionGroup": "players",
       "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "name", "order": "ASCENDING" }
-      ]
+      "fields": [{ "fieldPath": "name", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "players",
       "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "created_at", "order": "DESCENDING" }
-      ]
+      "fields": [{ "fieldPath": "created_at", "order": "DESCENDING" }]
     },
     {
       "collectionGroup": "matches",
       "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "kickoff_at", "order": "ASCENDING" }
-      ]
+      "fields": [{ "fieldPath": "kickoff_at", "order": "ASCENDING" }]
     },
     {
       "collectionGroup": "matches",
@@ -30,7 +24,7 @@
       ]
     },
     {
-      "collectionGroup": "match_chat_messages",
+      "collectionGroup": "chat_messages",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "match_id", "order": "ASCENDING" },
@@ -40,9 +34,7 @@
     {
       "collectionGroup": "wall_comments",
       "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "created_at", "order": "DESCENDING" }
-      ]
+      "fields": [{ "fieldPath": "created_at", "order": "DESCENDING" }]
     }
   ],
   "fieldOverrides": []

@@ -7,6 +7,7 @@ import { cert, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { isFeaturedMatch } from "../src/lib/teams";
 import { toEnglishTeam } from "../src/lib/team-names";
+import { COLLECTIONS } from "../src/lib/firestore";
 import { kickoffIso, MATCHES } from "../src/lib/matches-data";
 
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
@@ -32,7 +33,7 @@ async function main() {
   for (const m of MATCHES) {
     const homeTeam = toEnglishTeam(m.homeTeam);
     const awayTeam = toEnglishTeam(m.awayTeam);
-    const ref = db.collection("matches").doc(String(m.id));
+    const ref = db.collection(COLLECTIONS.matches).doc(String(m.id));
     batch.set(
       ref,
       {
@@ -55,7 +56,7 @@ async function main() {
   }
 
   batch.set(
-    db.collection("knockout_answer").doc("config"),
+    db.collection(COLLECTIONS.knockoutAnswer).doc("config"),
     { id: 1, set: false },
     { merge: true },
   );

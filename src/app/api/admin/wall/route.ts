@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { deleteWallComment } from "@/lib/firestore-wall";
+import { deleteWallComment } from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function DELETE(req: NextRequest) {

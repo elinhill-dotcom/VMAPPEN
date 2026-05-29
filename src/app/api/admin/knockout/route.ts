@@ -4,7 +4,7 @@ import type { KnockoutFormState } from "@/lib/knockout-picks";
 import {
   loadKnockoutAnswer,
   saveKnockoutAnswer,
-} from "@/lib/firestore-predictions";
+} from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 import { ALL_TEAMS } from "@/lib/teams";
 

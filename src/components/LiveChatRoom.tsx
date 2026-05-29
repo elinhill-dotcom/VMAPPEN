@@ -20,8 +20,8 @@ import {
   unsubscribeChat,
   type ChatMessage,
   type ChatPresenceUser,
-} from "@/lib/firestore-chat-client";
-import { isFirestoreConfigured } from "@/lib/firestore-shared";
+  isFirebaseConfigured,
+} from "@/lib/firebase";
 
 type MatchInfo = {
   id: number;
@@ -54,7 +54,7 @@ export function LiveChatRoom({ matchId }: Props) {
   const [posting, setPosting] = useState(false);
   const [adminTestMode, setAdminTestMode] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const configured = isFirestoreConfigured();
+  const configured = isFirebaseConfigured();
   const sessionKeyRef = useRef<string>(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()

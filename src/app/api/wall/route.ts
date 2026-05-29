@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createWallComment, fetchWallComments } from "@/lib/firestore-wall";
+import { createWallComment, fetchWallComments } from "@/lib/firestore";
 import { isFirestoreConfigured } from "@/lib/firestore";
 
 const MAX_MESSAGE = 500;
