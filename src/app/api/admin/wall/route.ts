@@ -1,7 +1,6 @@
+import { deleteWallComment, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { deleteWallComment } from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function DELETE(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -9,7 +8,7 @@ export async function DELETE(req: NextRequest) {
 
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

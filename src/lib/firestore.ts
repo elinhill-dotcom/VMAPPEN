@@ -1,3 +1,4 @@
+import { readFileSync } from "fs";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
@@ -41,15 +42,66 @@ export type DbResult<T> =
 export type ChatMessage = ReturnType<typeof mapChatMessage>;
 export type WallComment = ReturnType<typeof mapWallComment>;
 
+function parseServiceAccountJson(raw: string): Record<string, string> | null {
+  try {
+    return JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return null;
+  }
+}
+
+/** Service account for firebase-admin (server only). */
+export function getServiceAccount(): Record<string, string> | null {
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT_BASE64?.trim();
+  if (b64) {
+    try {
+      return parseServiceAccountJson(
+        Buffer.from(b64, "base64").toString("utf8"),
+      );
+    } catch {
+      return null;
+    }
+  }
+
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+  if (json) {
+    return parseServiceAccountJson(json);
+  }
+
+  const credPath = process.env.GOOGLE_APPLICATION_CREDENTIALS?.trim();
+  if (credPath) {
+    try {
+      return parseServiceAccountJson(readFileSync(credPath, "utf8"));
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 export function isFirestoreConfigured(): boolean {
   if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) return false;
   if (typeof window !== "undefined") {
     return !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
   }
-  return !!(
-    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
-    process.env.GOOGLE_APPLICATION_CREDENTIALS
-  );
+  return getServiceAccount() !== null;
+}
+
+export function getFirestoreConfigError(): string {
+  if (typeof window !== "undefined") {
+    return "Firebase är inte konfigurerad i webbläsaren.";
+  }
+  if (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID) {
+    return "Saknar NEXT_PUBLIC_FIREBASE_PROJECT_ID.";
+  }
+  if (
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON &&
+    !getServiceAccount()
+  ) {
+    return "FIREBASE_SERVICE_ACCOUNT_JSON är ogiltig JSON. Kontrollera .env eller Vercel.";
+  }
+  return "Saknar FIREBASE_SERVICE_ACCOUNT_JSON på servern. Lägg till i .env (lokalt) eller Vercel → Environment Variables, sedan starta om.";
 }
 
 export function toErrorMessage(err: unknown): string {
@@ -70,14 +122,14 @@ export function getAdminFirestore(): Firestore {
   }
 
   if (getApps().length === 0) {
-    const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-    if (raw) {
+    const serviceAccount = getServiceAccount();
+    if (serviceAccount) {
       initializeApp({
-        credential: cert(JSON.parse(raw) as Record<string, string>),
+        credential: cert(serviceAccount),
         projectId,
       });
     } else {
-      initializeApp({ projectId });
+      throw new Error(getFirestoreConfigError());
     }
   }
 

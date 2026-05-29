@@ -5,19 +5,20 @@ Tippa gruppmatcher och slutspel för Fotbolls-VM 2026. Svenskt gränssnitt, sven
 ## Kom igång
 
 1. Skapa ett [Firebase-projekt](https://console.firebase.google.com/) och aktivera **Firestore**.
-2. Kopiera `.env.example` till `.env.local` och fyll i alla `NEXT_PUBLIC_FIREBASE_*` (se `.env.example`) samt `FIREBASE_SERVICE_ACCOUNT_JSON` och `ADMIN_PASSWORD`.
-3. Firestore-kollektioner: `players`, `matches`, `predictions`, `chat_messages` (plus `knockout_picks`, `knockout_answer`, `wall_comments` för slutspel och vägg).
+2. Kopiera `.env.example` till `.env` och fyll i alla `NEXT_PUBLIC_FIREBASE_*`, `FIREBASE_SERVICE_ACCOUNT_JSON` (hela service account JSON på en rad) och `ADMIN_PASSWORD`.
+3. **Vercel:** lägg samma variabler under Project → Settings → Environment Variables. Utan `FIREBASE_SERVICE_ACCOUNT_JSON` får du fel när någon ska gå med i tipset.
+4. Firestore-kollektioner: `players`, `matches`, `predictions`, `chat_messages` (plus `knockout_picks`, `knockout_answer`, `wall_comments` för slutspel och vägg).
 4. Publicera regler och index:
    ```bash
    firebase deploy --only firestore
    ```
    (eller klistra in `firestore.rules` manuellt i Firebase Console)
-5. Seed matcher:
+6. Seed matcher:
    ```bash
    npm install
    npm run db:seed
    ```
-6. Starta appen:
+7. Starta appen:
    ```bash
    npm run dev
    ```

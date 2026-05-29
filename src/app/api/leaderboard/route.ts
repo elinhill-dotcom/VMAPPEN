@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { getLeaderboardPayload } from "@/lib/leaderboard";
-import { isFirestoreConfigured } from "@/lib/firestore";
+import {isFirestoreConfigured, getFirestoreConfigError } from "@/lib/firestore";
 
 export async function GET() {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

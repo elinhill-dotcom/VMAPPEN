@@ -1,12 +1,7 @@
+import { findPlayerById, getFirestoreConfigError, loadKnockoutPick, saveKnockoutPick, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { predictionsLocked } from "@/lib/config";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
-import { findPlayerById } from "@/lib/firestore";
-import {
-  loadKnockoutPick,
-  saveKnockoutPick,
-} from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 import { ALL_TEAMS } from "@/lib/teams";
 
 const validTeams = new Set<string>(ALL_TEAMS);
@@ -19,7 +14,7 @@ function sanitizeTeam(v: unknown): string {
 export async function GET(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
@@ -40,7 +35,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

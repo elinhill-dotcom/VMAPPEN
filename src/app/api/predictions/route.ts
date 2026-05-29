@@ -1,16 +1,11 @@
+import { findPlayerById, getFirestoreConfigError, loadGroupPredictions, saveGroupPredictions, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { predictionsLocked } from "@/lib/config";
-import { findPlayerById } from "@/lib/firestore";
-import {
-  loadGroupPredictions,
-  saveGroupPredictions,
-} from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
@@ -31,7 +26,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

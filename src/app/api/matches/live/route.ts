@@ -1,6 +1,5 @@
+import { fetchLiveMatches, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextResponse } from "next/server";
-import { fetchLiveMatches } from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function GET() {
   if (!isFirestoreConfigured()) {

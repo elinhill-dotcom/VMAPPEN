@@ -1,8 +1,7 @@
+import { updateMatchResult, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminPassword } from "@/lib/config";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
-import { updateMatchResult } from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 const validGroupIds = new Set(GROUP_MATCH_IDS);
 
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

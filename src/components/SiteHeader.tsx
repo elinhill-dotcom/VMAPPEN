@@ -49,9 +49,7 @@ export function SiteHeader() {
       </div>
       <div className="site-header__tagline-bar">
         <p className="site-header__tagline">
-          <span className="site-header__tagline-flag" aria-hidden />
           Familjetipset · Tippa · Heja Sverige · Ha kul
-          <span className="site-header__tagline-flag site-header__tagline-flag--right" aria-hidden />
         </p>
       </div>
     </header>

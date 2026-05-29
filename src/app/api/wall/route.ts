@@ -1,6 +1,5 @@
+import { createWallComment, fetchWallComments, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
-import { createWallComment, fetchWallComments } from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 const MAX_MESSAGE = 500;
 const MAX_NAME = 80;
@@ -9,7 +8,7 @@ const MIN_NAME = 2;
 export async function GET() {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
@@ -25,7 +24,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

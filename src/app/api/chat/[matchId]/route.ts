@@ -1,20 +1,15 @@
+import { fetchMatchById, getFirestoreConfigError, insertChatMessage, loadChatMessages, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminPassword } from "@/lib/admin-auth";
 import { verifyAdminPassword } from "@/lib/config";
 import { isMatchLive } from "@/lib/match-live";
-import { fetchMatchById } from "@/lib/firestore";
-import {
-  insertChatMessage,
-  loadChatMessages,
-} from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 type RouteCtx = { params: Promise<{ matchId: string }> };
 
 export async function GET(req: NextRequest, ctx: RouteCtx) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
@@ -64,7 +59,7 @@ export async function GET(req: NextRequest, ctx: RouteCtx) {
 export async function POST(req: NextRequest, ctx: RouteCtx) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }

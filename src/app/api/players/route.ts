@@ -1,11 +1,10 @@
+import { findOrCreatePlayerByName, fetchPlayers, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
-import { findOrCreatePlayerByName, fetchPlayers } from "@/lib/firestore";
-import { isFirestoreConfigured } from "@/lib/firestore";
 
 export async function POST(req: NextRequest) {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
@@ -27,7 +26,7 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
-      { error: "Firestore är inte konfigurerad." },
+      { error: getFirestoreConfigError() },
       { status: 503 },
     );
   }
