@@ -30,9 +30,9 @@ export function SiteHeader() {
       <div className="site-header__banner-wrap">
         <Image
           src="/super-vmapp-banner.png"
-          alt="SUPER VMAPP — familjetipset för Fotbolls-VM 2026"
+          alt="SUPER VM-APP — familjetipset för Fotbolls-VM 2026"
           width={1200}
-          height={630}
+          height={400}
           className="site-header__banner"
           priority
           sizes="(max-width: 72rem) 100vw, 72rem"
