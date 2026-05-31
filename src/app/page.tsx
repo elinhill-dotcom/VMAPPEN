@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { formatCestDateTime } from "@/lib/datetime";
 import { ContinueAsPlayer } from "@/components/ContinueAsPlayer";
+import { LockCountdown } from "@/components/LockCountdown";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 
 type Config = {
@@ -47,11 +47,12 @@ export default function HomePage() {
       .then(setProgress);
   }, [player]);
 
-  const lockLabel = config ? formatCestDateTime(config.lockAt) : "";
   const kp = config?.knockoutPoints;
 
   return (
     <div className="space-y-8">
+      <LockCountdown />
+
       <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6">
         <h2 className="burst-heading mb-4">Så funkar det</h2>
         <ul className="list-disc pl-5 space-y-2 text-[var(--muted)] text-sm">
@@ -109,16 +110,6 @@ export default function HomePage() {
             tips stämde.
           </li>
         </ul>
-        {config?.locked && (
-          <p className="mt-4 rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-2 text-sm">
-            Tipsen är låsta — turneringen har startat.
-          </p>
-        )}
-        {!config?.locked && lockLabel && (
-          <p className="mt-4 text-sm text-[var(--muted)]">
-            Tips låses: {lockLabel}
-          </p>
-        )}
       </section>
 
       {player ? (
