@@ -1,4 +1,5 @@
 import { loadKnockoutAnswer, saveKnockoutAnswer, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
+import { CACHE_KEYS, invalidateApiCache } from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminPassword } from "@/lib/config";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
@@ -58,6 +59,8 @@ export async function POST(req: NextRequest) {
   if (saveRes.error) {
     return NextResponse.json({ error: saveRes.error }, { status: 500 });
   }
+
+  invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
 
   const loadRes = await loadKnockoutAnswer();
   return NextResponse.json({ answer: loadRes.data });

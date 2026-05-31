@@ -27,7 +27,7 @@ export function usePredictionsLocked() {
 
     const interval = setInterval(() => {
       refresh().catch(() => {});
-    }, 30_000);
+    }, 60_000);
 
     return () => clearInterval(interval);
   }, [refresh]);

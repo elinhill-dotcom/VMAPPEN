@@ -1,4 +1,9 @@
 import { fetchMatches, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
+import {
+  CACHE_KEYS,
+  READ_HEAVY_CACHE_HEADERS,
+  withApiCache,
+} from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -10,13 +15,20 @@ export async function GET(req: NextRequest) {
   }
 
   const stage = req.nextUrl.searchParams.get("stage") ?? undefined;
-  const res = await fetchMatches(stage ? { stage } : undefined);
+  const cacheKey = stage ? `${CACHE_KEYS.matches}:${stage}` : CACHE_KEYS.matches;
+  const res = await withApiCache(cacheKey, () =>
+    fetchMatches(stage ? { stage } : undefined),
+  );
   if (res.error || !res.data) {
+    const status = /kvoten är slut/i.test(res.error ?? "") ? 429 : 500;
     return NextResponse.json(
       { error: res.error ?? "Kunde inte ladda matcher" },
-      { status: 500 },
+      { status },
     );
   }
 
-  return NextResponse.json({ matches: res.data });
+  return NextResponse.json(
+    { matches: res.data },
+    { headers: READ_HEAVY_CACHE_HEADERS },
+  );
 }

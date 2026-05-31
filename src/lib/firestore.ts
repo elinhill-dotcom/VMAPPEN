@@ -105,10 +105,23 @@ export function getFirestoreConfigError(): string {
 }
 
 export function toErrorMessage(err: unknown): string {
-  if (err && typeof err === "object" && "message" in err) {
-    return String((err as { message: string }).message);
+  const raw =
+    err && typeof err === "object" && "message" in err
+      ? String((err as { message: string }).message)
+      : err instanceof Error
+        ? err.message
+        : "Något gick fel";
+
+  if (/RESOURCE_EXHAUSTED|Quota exceeded/i.test(raw)) {
+    return "Firestore-kvoten är slut för idag — datan finns kvar men kan inte läsas just nu. Kontrollera Firebase → Usage, eller vänta tills kvoten nollställs (midnatt Pacific Time).";
   }
-  return "Något gick fel";
+
+  return raw || "Något gick fel";
+}
+
+export function isQuotaExceededError(err: unknown): boolean {
+  const msg = toErrorMessage(err);
+  return /Firestore-kvoten är slut|RESOURCE_EXHAUSTED|Quota exceeded/i.test(msg);
 }
 
 let adminDb: Firestore | null = null;

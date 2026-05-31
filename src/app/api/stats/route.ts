@@ -1,5 +1,10 @@
 import { computeBettingStats } from "@/lib/betting-stats";
 import { predictionsLocked } from "@/lib/config";
+import {
+  CACHE_KEYS,
+  READ_HEAVY_CACHE_HEADERS,
+  withApiCache,
+} from "@/lib/api-cache";
 import { getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextResponse } from "next/server";
 
@@ -22,13 +27,17 @@ export async function GET() {
     );
   }
 
-  const res = await computeBettingStats();
+  const res = await withApiCache(CACHE_KEYS.stats, () => computeBettingStats(), 60_000);
   if (res.error || !res.data) {
+    const status = /kvoten är slut/i.test(res.error ?? "") ? 429 : 500;
     return NextResponse.json(
       { error: res.error ?? "Kunde inte ladda statistik" },
-      { status: 500 },
+      { status },
     );
   }
 
-  return NextResponse.json({ locked: true, stats: res.data });
+  return NextResponse.json(
+    { locked: true, stats: res.data },
+    { headers: READ_HEAVY_CACHE_HEADERS },
+  );
 }

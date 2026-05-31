@@ -1,4 +1,5 @@
 import { createWallComment, fetchWallComments, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
+import { CACHE_KEYS, invalidateApiCache, READ_HEAVY_CACHE_HEADERS, withApiCache } from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 
 const MAX_MESSAGE = 500;
@@ -13,12 +14,16 @@ export async function GET() {
     );
   }
 
-  const res = await fetchWallComments();
+  const res = await withApiCache(CACHE_KEYS.wall, () => fetchWallComments(), 30_000);
   if (res.error) {
-    return NextResponse.json({ error: res.error }, { status: 500 });
+    const status = /kvoten är slut/i.test(res.error) ? 429 : 500;
+    return NextResponse.json({ error: res.error }, { status });
   }
 
-  return NextResponse.json({ comments: res.data ?? [] });
+  return NextResponse.json(
+    { comments: res.data ?? [] },
+    { headers: READ_HEAVY_CACHE_HEADERS },
+  );
 }
 
 export async function POST(req: NextRequest) {
@@ -53,6 +58,8 @@ export async function POST(req: NextRequest) {
       { status: 500 },
     );
   }
+
+  invalidateApiCache(CACHE_KEYS.wall);
 
   return NextResponse.json({ comment: res.data }, { status: 201 });
 }

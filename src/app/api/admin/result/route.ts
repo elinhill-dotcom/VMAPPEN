@@ -1,9 +1,18 @@
 import { clearMatchResult, getFirestoreConfigError, isFirestoreConfigured, updateMatchResult } from "@/lib/firestore";
+import { CACHE_KEYS, invalidateApiCache } from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
 
 const validGroupIds = new Set(GROUP_MATCH_IDS);
+
+function invalidateResultCaches() {
+  invalidateApiCache(
+    CACHE_KEYS.leaderboard,
+    CACHE_KEYS.stats,
+    CACHE_KEYS.matches,
+  );
+}
 
 export async function POST(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -31,6 +40,7 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
+    invalidateResultCaches();
     return NextResponse.json({ match: res.data });
   }
 
@@ -55,5 +65,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  invalidateResultCaches();
   return NextResponse.json({ match: res.data });
 }
