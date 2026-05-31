@@ -52,8 +52,8 @@ export function SupporterWall() {
   }
 
   return (
-    <aside className="supporter-wall flex flex-col h-full min-h-[320px]">
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 mb-4">
+    <aside className="supporter-wall flex flex-col lg:h-full lg:min-h-[320px]">
+      <div className="supporter-wall__header rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 mb-4 order-1">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           <span aria-hidden>📣</span>
           GULA VÄGGEN!
@@ -63,9 +63,46 @@ export function SupporterWall() {
         </p>
       </div>
 
+      <div className="supporter-wall__feed order-2 lg:order-3 flex flex-col rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden lg:flex-1 lg:min-h-0 mb-4 lg:mb-0">
+        <p className="text-xs text-[var(--muted)] px-4 py-2 border-b border-[var(--border)] shrink-0">
+          {comments.length} meddelande{comments.length === 1 ? "" : "n"}
+        </p>
+        <ul className="supporter-wall__messages overflow-y-auto p-3 space-y-3 lg:flex-1 lg:min-h-0">
+          {comments.length === 0 ? (
+            <li className="text-sm text-[var(--muted)] text-center py-8">
+              Var först med att skriva något!
+            </li>
+          ) : (
+            comments.map((c) => (
+              <li
+                key={c.id}
+                className="rounded-lg border border-[var(--border)] bg-[var(--bg)]/60 p-3"
+              >
+                <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-2 mb-1.5">
+                  <span className="font-semibold text-[var(--accent)] break-words">
+                    {c.name}
+                  </span>
+                  <time className="text-xs text-[var(--muted)] shrink-0">
+                    {new Date(c.createdAt).toLocaleString("sv-SE", {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </time>
+                </div>
+                <p className="text-sm sm:text-base whitespace-pre-wrap break-words leading-relaxed">
+                  {c.message}
+                </p>
+              </li>
+            ))
+          )}
+        </ul>
+      </div>
+
       <form
         onSubmit={submit}
-        className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3 mb-4 shrink-0"
+        className="supporter-wall__form order-3 lg:order-2 rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 space-y-3 shrink-0"
       >
         <label className="block text-sm">
           <span className="text-[var(--muted)]">Ditt namn</span>
@@ -77,7 +114,7 @@ export function SupporterWall() {
             minLength={2}
             maxLength={80}
             placeholder="Namn"
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2"
+            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2.5 text-base"
           />
         </label>
         <label className="block text-sm">
@@ -87,7 +124,7 @@ export function SupporterWall() {
             onChange={(e) => setMessage(e.target.value)}
             required
             maxLength={500}
-            rows={4}
+            rows={6}
             placeholder="Heja Sverige! / Lycka till allihopa!"
             className="supporter-wall__input mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-3 resize-y text-base leading-relaxed"
           />
@@ -99,48 +136,11 @@ export function SupporterWall() {
         <button
           type="submit"
           disabled={posting}
-          className="w-full rounded-lg bg-[var(--accent)] py-2 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
+          className="w-full rounded-lg bg-[var(--accent)] py-3 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
         >
           {posting ? "Publicerar…" : "Publicera på väggen"}
         </button>
       </form>
-
-      <div className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden flex flex-col min-h-0">
-        <p className="text-xs text-[var(--muted)] px-4 py-2 border-b border-[var(--border)] shrink-0">
-          {comments.length} meddelande{comments.length === 1 ? "" : "n"}
-        </p>
-        <ul className="overflow-y-auto flex-1 p-3 space-y-3 max-h-[420px] lg:max-h-none">
-          {comments.length === 0 ? (
-            <li className="text-sm text-[var(--muted)] text-center py-8">
-              Var först med att skriva något!
-            </li>
-          ) : (
-            comments.map((c) => (
-              <li
-                key={c.id}
-                className="rounded-lg border border-[var(--border)] bg-[var(--bg)]/60 p-3"
-              >
-                <div className="flex items-baseline justify-between gap-2 mb-1">
-                  <span className="font-semibold text-[var(--accent)]">
-                    {c.name}
-                  </span>
-                  <time className="text-[10px] text-[var(--muted)] shrink-0">
-                    {new Date(c.createdAt).toLocaleString("sv-SE", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </time>
-                </div>
-                <p className="text-sm whitespace-pre-wrap break-words">
-                  {c.message}
-                </p>
-              </li>
-            ))
-          )}
-        </ul>
-      </div>
     </aside>
   );
 }
