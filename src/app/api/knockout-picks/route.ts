@@ -1,6 +1,6 @@
 import { findPlayerById, getFirestoreConfigError, loadKnockoutPick, saveKnockoutPick, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
-import { predictionsLocked } from "@/lib/config";
+import { predictionsLocked, PICKS_LOCKED_MESSAGE } from "@/lib/config";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
 import { ALL_TEAMS } from "@/lib/teams";
 
@@ -41,10 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (predictionsLocked()) {
-    return NextResponse.json(
-      { error: "Picks are locked â€” the tournament has started." },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
   }
 
   const body = await req.json();

@@ -1,7 +1,7 @@
 import { clearPlayerPicks, getFirestoreConfigError, deletePlayer, fetchAdminPlayers, findPlayerById, isPlayerNameTaken, renamePlayer, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { predictionsLocked } from "@/lib/config";
+import { predictionsLocked, PICKS_LOCKED_MESSAGE } from "@/lib/config";
 
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -119,10 +119,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (predictionsLocked()) {
-    return NextResponse.json(
-      { error: "Picks are locked â€” cannot clear picks after kickoff." },
-      { status: 403 },
-    );
+    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
   }
 
   const playerRes = await findPlayerById(playerId);

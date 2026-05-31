@@ -10,7 +10,9 @@ import { ContinueAsPlayer } from "@/components/ContinueAsPlayer";
 import { MatchCard, type MatchView } from "@/components/MatchCard";
 import { PicksChecklist } from "@/components/PicksChecklist";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
+import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
+import { PICKS_LOCKED_MESSAGE } from "@/lib/config";
 import {
   KNOCKOUT_PICK_COUNT,
   countKnockoutFilled,
@@ -22,6 +24,7 @@ type PredMap = Record<number, { home: string; away: string }>;
 
 export default function PicksPage() {
   const { player, hydrated, remember } = usePlayerSession();
+  const { locked } = usePredictionsLocked();
   const { map: bettingStatsMap, available: statsAvailable } =
     useMatchBettingStatsMap();
   const [matches, setMatches] = useState<MatchView[]>([]);
@@ -29,7 +32,6 @@ export default function PicksPage() {
   const [knockout, setKnockout] = useState<KnockoutFormState>(
     emptyKnockoutForm(),
   );
-  const [locked, setLocked] = useState(false);
   const [filter, setFilter] = useState<"all" | "featured" | "missing">("all");
   const [tab, setTab] = useState<"group" | "knockout">("group");
   const [saving, setSaving] = useState(false);
@@ -41,16 +43,14 @@ export default function PicksPage() {
   const load = useCallback(async (playerId: string) => {
     setLoadError("");
     setMatchesLoaded(false);
-    const [mRes, pRes, kRes, cRes] = await Promise.all([
+    const [mRes, pRes, kRes] = await Promise.all([
       fetch("/api/matches?stage=group"),
       fetch(`/api/predictions?playerId=${playerId}`),
       fetch(`/api/knockout-picks?playerId=${playerId}`),
-      fetch("/api/config"),
     ]);
     const mData = await mRes.json();
     const pData = await pRes.json();
     const kData = await kRes.json();
-    const cfg = await cRes.json();
 
     if (!mRes.ok) {
       setLoadError(
@@ -75,7 +75,6 @@ export default function PicksPage() {
     const pick = kData.pick;
 
     setMatches(ms);
-    setLocked(cfg.locked);
 
     const map: PredMap = {};
     for (const m of ms as MatchView[]) {
@@ -142,6 +141,11 @@ export default function PicksPage() {
 
   async function save() {
     if (!player) return;
+    if (locked) {
+      setMessage(PICKS_LOCKED_MESSAGE);
+      setMessageWarn(true);
+      return;
+    }
     setSaving(true);
     setMessage("");
     setMessageWarn(false);
@@ -264,7 +268,7 @@ export default function PicksPage() {
 
       {locked && (
         <p className="rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-2 text-sm">
-          Tipsen är låsta — endast visning.
+          {PICKS_LOCKED_MESSAGE} Endast visning.
         </p>
       )}
 
