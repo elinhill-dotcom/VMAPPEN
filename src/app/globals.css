@@ -409,6 +409,16 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
   }
 }
 
+.supporter-wall textarea {
+  min-height: 8.5rem;
+}
+
+@media (min-width: 640px) {
+  .supporter-wall textarea {
+    min-height: 5.5rem;
+  }
+}
+
 .live-badge {
   display: inline-flex;
   align-items: center;

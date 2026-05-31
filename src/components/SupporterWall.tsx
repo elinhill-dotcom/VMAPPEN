@@ -87,9 +87,9 @@ export function SupporterWall() {
             onChange={(e) => setMessage(e.target.value)}
             required
             maxLength={500}
-            rows={3}
+            rows={4}
             placeholder="Heja Sverige! / Lycka till allihopa!"
-            className="mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-2 resize-y"
+            className="supporter-wall__input mt-1 w-full rounded-lg border border-[var(--border)] bg-[var(--bg)] px-3 py-3 resize-y text-base leading-relaxed"
           />
         </label>
         <p className="text-xs text-[var(--muted)] text-right">

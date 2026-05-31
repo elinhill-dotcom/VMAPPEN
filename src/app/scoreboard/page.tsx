@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { SupporterWall } from "@/components/SupporterWall";
+import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
+import { PICKS_HIDDEN_MESSAGE } from "@/lib/config";
 
 type Entry = {
   playerId: string;
@@ -30,6 +32,7 @@ type WinnerSummary = {
 };
 
 export default function ScoreboardPage() {
+  const { locked: picksVisible } = usePredictionsLocked();
   const [entries, setEntries] = useState<Entry[]>([]);
   const [jarTotal, setJarTotal] = useState(0);
   const [jarPerPlayer, setJarPerPlayer] = useState(100);
@@ -168,12 +171,16 @@ export default function ScoreboardPage() {
                     >
                       <td className="px-4 py-3 font-medium">{i + 1}</td>
                       <td className="px-4 py-3 font-semibold">
-                        <Link
-                          href={`/scoreboard/${e.playerId}`}
-                          className="hover:text-[var(--accent)] hover:underline"
-                        >
-                          {e.name}
-                        </Link>
+                        {picksVisible ? (
+                          <Link
+                            href={`/scoreboard/${e.playerId}`}
+                            className="hover:text-[var(--accent)] hover:underline"
+                          >
+                            {e.name}
+                          </Link>
+                        ) : (
+                          e.name
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right text-[var(--accent)] font-bold">
                         {e.points}
@@ -195,8 +202,9 @@ export default function ScoreboardPage() {
           )}
 
           <p className="text-xs text-[var(--muted)] mt-3">
-            Klicka på ett namn för att se tips och poängförklaring. Vid lika
-            poäng: flest exakta grupptips vinner.
+            {picksVisible
+              ? "Klicka på ett namn för att se tips och poängförklaring. Vid lika poäng: flest exakta grupptips vinner."
+              : `${PICKS_HIDDEN_MESSAGE} Vid lika poäng: flest exakta grupptips vinner.`}
           </p>
         </section>
       </div>

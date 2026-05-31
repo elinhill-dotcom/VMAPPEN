@@ -1,4 +1,5 @@
 import { computePlayerBreakdown } from "@/lib/player-breakdown";
+import { predictionsLocked, PICKS_HIDDEN_MESSAGE } from "@/lib/config";
 import { getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -16,6 +17,10 @@ export async function GET(
   const { playerId } = await params;
   if (!playerId) {
     return NextResponse.json({ error: "Missing playerId" }, { status: 400 });
+  }
+
+  if (!predictionsLocked()) {
+    return NextResponse.json({ error: PICKS_HIDDEN_MESSAGE }, { status: 403 });
   }
 
   const res = await computePlayerBreakdown(playerId);

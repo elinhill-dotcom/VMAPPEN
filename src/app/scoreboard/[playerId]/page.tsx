@@ -1,19 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { PlayerBreakdownView } from "@/components/PlayerBreakdownView";
 import type { PlayerBreakdown } from "@/lib/player-breakdown-shared";
+import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
 
 export default function PlayerScorePage() {
   const params = useParams();
+  const router = useRouter();
   const playerId = params.playerId as string;
+  const { locked: picksVisible, loading: lockLoading } = usePredictionsLocked();
   const [breakdown, setBreakdown] = useState<PlayerBreakdown | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!playerId) return;
+    if (!lockLoading && !picksVisible) {
+      router.replace("/scoreboard");
+    }
+  }, [lockLoading, picksVisible, router]);
+
+  useEffect(() => {
+    if (!playerId || lockLoading || !picksVisible) return;
     setLoading(true);
     fetch(`/api/players/${playerId}/breakdown`)
       .then(async (r) => {
@@ -38,7 +48,11 @@ export default function PlayerScorePage() {
         );
       })
       .finally(() => setLoading(false));
-  }, [playerId]);
+  }, [playerId, lockLoading, picksVisible]);
+
+  if (lockLoading || !picksVisible) {
+    return null;
+  }
 
   if (loading) {
     return <p className="text-[var(--muted)]">Laddar resultat…</p>;
@@ -48,9 +62,9 @@ export default function PlayerScorePage() {
     return (
       <div className="space-y-4">
         <p className="text-[var(--danger)]">{error || "Hittades inte"}</p>
-        <a href="/scoreboard" className="text-sm text-[var(--accent)]">
+        <Link href="/scoreboard" className="text-sm text-[var(--accent)]">
           ← Tillbaka till topplistan
-        </a>
+        </Link>
       </div>
     );
   }
