@@ -4,11 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
+import { MatchBettingSummary } from "@/components/MatchBettingSummary";
+import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 
 export default function ResultsPage() {
   const [matches, setMatches] = useState<MatchView[]>([]);
   const [filter, setFilter] = useState<"all" | "finished" | "upcoming">("all");
   const [group, setGroup] = useState<string>("all");
+  const { map: bettingStatsMap, available: statsAvailable } =
+    useMatchBettingStatsMap();
 
   useEffect(() => {
     fetch("/api/matches?stage=group")
@@ -111,43 +115,51 @@ export default function ResultsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {dayMatches.map((m) => (
-                    <tr
-                      key={m.id}
-                      className="border-t border-[var(--border)]"
-                    >
-                      <td className="px-4 py-3">
-                        <p className="font-medium">
-                          {m.homeTeam} – {m.awayTeam}
-                        </p>
-                        <p className="text-xs text-[var(--muted)]">
-                          {formatCestMatchKickoff(m.kickoffAt)}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
-                        {m.finished &&
-                        m.homeScore !== null &&
-                        m.awayScore !== null
-                          ? `${m.homeScore}–${m.awayScore}`
-                          : "—"}
-                      </td>
-                      <td className="px-4 py-3 text-[var(--muted)]">
-                        {m.finished &&
-                        m.homeScore !== null &&
-                        m.awayScore !== null
-                          ? winnerLabel(
-                              m.homeScore,
-                              m.awayScore,
-                              m.homeTeam,
-                              m.awayTeam,
-                            )
-                          : "Väntar"}
-                      </td>
-                      <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
-                        {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
-                      </td>
-                    </tr>
-                  ))}
+                  {dayMatches.map((m) => {
+                    const betting = bettingStatsMap.get(m.id);
+                    return (
+                      <tr
+                        key={m.id}
+                        className="border-t border-[var(--border)]"
+                      >
+                        <td className="px-4 py-3">
+                          <p className="font-medium">
+                            {m.homeTeam} – {m.awayTeam}
+                          </p>
+                          <p className="text-xs text-[var(--muted)]">
+                            {formatCestMatchKickoff(m.kickoffAt)}
+                          </p>
+                          {statsAvailable && betting && (
+                            <div className="mt-3 max-w-md">
+                              <MatchBettingSummary stats={betting} compact />
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
+                          {m.finished &&
+                          m.homeScore !== null &&
+                          m.awayScore !== null
+                            ? `${m.homeScore}–${m.awayScore}`
+                            : "—"}
+                        </td>
+                        <td className="px-4 py-3 text-[var(--muted)]">
+                          {m.finished &&
+                          m.homeScore !== null &&
+                          m.awayScore !== null
+                            ? winnerLabel(
+                                m.homeScore,
+                                m.awayScore,
+                                m.homeTeam,
+                                m.awayTeam,
+                              )
+                            : "Väntar"}
+                        </td>
+                        <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
+                          {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

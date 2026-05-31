@@ -7,6 +7,7 @@ import {
   type KnockoutFormState,
 } from "@/components/KnockoutPickForm";
 import { AdminPlayers } from "@/components/AdminPlayers";
+import { AdminExport } from "@/components/AdminExport";
 import type { MatchView } from "@/components/MatchCard";
 import {
   clearAdminSession,
@@ -28,7 +29,7 @@ export default function AdminPage() {
     emptyKnockoutForm(),
   );
   const [filter, setFilter] = useState<"open" | "all">("open");
-  const [tab, setTab] = useState<"group" | "knockout" | "players">("group");
+  const [tab, setTab] = useState<"group" | "knockout" | "players" | "export">("group");
   const [message, setMessage] = useState("");
   const [messageIsError, setMessageIsError] = useState(false);
 
@@ -117,6 +118,34 @@ export default function AdminPage() {
       prev.map((m) => (m.id === matchId ? { ...m, ...data.match } : m)),
     );
     showMessage(`Resultat sparat för match #${matchId}`);
+  }
+
+  async function clearResult(matchId: number) {
+    if (
+      !confirm(
+        "Nollställ resultatet för den här matchen? Matchen markeras som ej spelad.",
+      )
+    ) {
+      return;
+    }
+    showMessage("");
+    const res = await fetch("/api/admin/result", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-password": password,
+      },
+      body: JSON.stringify({ matchId, clear: true }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showMessage(data.error ?? "Kunde inte nollställa", true);
+      return;
+    }
+    setMatches((prev) =>
+      prev.map((m) => (m.id === matchId ? { ...m, ...data.match } : m)),
+    );
+    showMessage(`Resultat nollställt för match #${matchId}`);
   }
 
   async function saveKnockout() {
@@ -209,6 +238,17 @@ export default function AdminPage() {
         </button>
         <button
           type="button"
+          onClick={() => setTab("export")}
+          className={`rounded-lg px-3 py-1.5 text-sm ${
+            tab === "export"
+              ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+              : "bg-[var(--card)]"
+          }`}
+        >
+          Exportera tips
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("group")}
           className={`rounded-lg px-3 py-1.5 text-sm ${
             tab === "group"
@@ -233,6 +273,10 @@ export default function AdminPage() {
 
       {tab === "players" && (
         <AdminPlayers password={password} onMessage={showMessage} />
+      )}
+
+      {tab === "export" && (
+        <AdminExport password={password} onMessage={showMessage} />
       )}
 
       {tab === "group" && (
@@ -268,6 +312,7 @@ export default function AdminPage() {
                 key={m.id}
                 match={m}
                 onSave={saveResult}
+                onClear={clearResult}
               />
             ))}
           </div>
@@ -301,9 +346,11 @@ export default function AdminPage() {
 function AdminMatchRow({
   match,
   onSave,
+  onClear,
 }: {
   match: MatchView;
   onSave: (id: number, h: number, a: number) => void;
+  onClear: (id: number) => void;
 }) {
   const [home, setHome] = useState(
     match.homeScore !== null ? String(match.homeScore) : "0",
@@ -351,7 +398,16 @@ function AdminMatchRow({
           {match.finished ? "Uppdatera" : "Spara resultat"}
         </button>
         {match.finished && (
-          <span className="text-xs text-[var(--muted)]">Klar</span>
+          <>
+            <span className="text-xs text-[var(--muted)]">Klar</span>
+            <button
+              type="button"
+              onClick={() => onClear(match.id)}
+              className="rounded-lg border border-[var(--danger)]/50 px-4 py-1.5 text-sm text-[var(--danger)] hover:bg-[var(--danger)]/10"
+            >
+              Nollställ resultat
+            </button>
+          </>
         )}
       </div>
     </div>

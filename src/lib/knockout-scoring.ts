@@ -31,37 +31,56 @@ function teamsInBronze(answer: KnockoutPickData): string[] {
   return [answer.bronzeHome, answer.bronzeAway].filter((t): t is string => !!t);
 }
 
-function pickedSemifinalists(pick: KnockoutPickData): string[] {
-  return [pick.sf1Home, pick.sf1Away, pick.sf2Home, pick.sf2Away].filter(
-    (t): t is string => !!t,
-  );
-}
-
 export function scoreKnockoutPick(
   pick: KnockoutPickData,
   answer: KnockoutPickData,
 ): number {
-  if (!answer.champion) return 0;
+  return breakdownKnockoutPick(pick, answer).reduce((sum, s) => sum + s.points, 0);
+}
 
-  let points = 0;
-  const actualSF = new Set(teamsInSemis(answer));
-  for (const t of pickedSemifinalists(pick)) {
-    if (actualSF.has(t)) points += KNOCKOUT_POINTS.semifinalist;
-  }
+export type KnockoutSlotBreakdown = {
+  key: keyof KnockoutPickData;
+  label: string;
+  picked: string | null;
+  points: number;
+  hit: boolean;
+  category: keyof typeof KNOCKOUT_POINTS;
+};
 
-  const actualFinal = new Set(teamsInFinal(answer));
-  for (const t of [pick.finalHome, pick.finalAway].filter((x): x is string => !!x)) {
-    if (actualFinal.has(t)) points += KNOCKOUT_POINTS.finalist;
-  }
+const KNOCKOUT_SLOT_DEFS: {
+  key: keyof KnockoutPickData;
+  label: string;
+  category: keyof typeof KNOCKOUT_POINTS;
+  actualTeams: (answer: KnockoutPickData) => string[];
+}[] = [
+  { key: "sf1Home", label: "Semifinal 1 — hemma", category: "semifinalist", actualTeams: teamsInSemis },
+  { key: "sf1Away", label: "Semifinal 1 — borta", category: "semifinalist", actualTeams: teamsInSemis },
+  { key: "sf2Home", label: "Semifinal 2 — hemma", category: "semifinalist", actualTeams: teamsInSemis },
+  { key: "sf2Away", label: "Semifinal 2 — borta", category: "semifinalist", actualTeams: teamsInSemis },
+  { key: "finalHome", label: "Final — lag 1", category: "finalist", actualTeams: teamsInFinal },
+  { key: "finalAway", label: "Final — lag 2", category: "finalist", actualTeams: teamsInFinal },
+  { key: "champion", label: "VM-vinnare", category: "champion", actualTeams: (a) => (a.champion ? [a.champion] : []) },
+  { key: "bronzeHome", label: "Brons — lag 1", category: "bronzeTeam", actualTeams: teamsInBronze },
+  { key: "bronzeAway", label: "Brons — lag 2", category: "bronzeTeam", actualTeams: teamsInBronze },
+];
 
-  if (pick.champion && pick.champion === answer.champion) {
-    points += KNOCKOUT_POINTS.champion;
-  }
+export function breakdownKnockoutPick(
+  pick: KnockoutPickData,
+  answer: KnockoutPickData,
+): KnockoutSlotBreakdown[] {
+  if (!answer.champion) return [];
 
-  const actualBronze = new Set(teamsInBronze(answer));
-  for (const t of [pick.bronzeHome, pick.bronzeAway].filter((x): x is string => !!x)) {
-    if (actualBronze.has(t)) points += KNOCKOUT_POINTS.bronzeTeam;
-  }
-
-  return points;
+  return KNOCKOUT_SLOT_DEFS.map(({ key, label, category, actualTeams }) => {
+    const picked = pick[key] ?? null;
+    const actual = new Set(actualTeams(answer));
+    const hit = !!picked && actual.has(picked);
+    return {
+      key,
+      label,
+      picked,
+      hit,
+      category,
+      points: hit ? KNOCKOUT_POINTS[category] : 0,
+    };
+  });
 }

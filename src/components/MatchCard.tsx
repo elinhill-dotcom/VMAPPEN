@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { isMatchLive } from "@/lib/match-live";
 import { evaluatePick } from "@/lib/pick-feedback";
+import { MatchBettingSummary } from "@/components/MatchBettingSummary";
+import type { MatchBettingStats } from "@/lib/betting-stats";
 
 export type MatchView = {
   id: number;
@@ -28,6 +30,8 @@ type Props = {
   locked: boolean;
   onChange: (home: string, away: string) => void;
   showResult?: boolean;
+  pickLabel?: string;
+  bettingStats?: MatchBettingStats | null;
 };
 
 const STAGE_LABELS: Record<string, string> = {
@@ -41,6 +45,8 @@ export function MatchCard({
   locked,
   onChange,
   showResult,
+  pickLabel = "Ditt tips",
+  bettingStats,
 }: Props) {
   const featured = match.featured;
   const [live, setLive] = useState(() => isMatchLive(match.kickoffAt));
@@ -117,7 +123,7 @@ export function MatchCard({
           {feedback.hasPick ? (
             <div className="flex flex-wrap items-center justify-center gap-2">
               <span className="text-xs text-[var(--muted)]">
-                Ditt tips: {feedback.pickLabel}
+                {pickLabel}: {feedback.pickLabel}
               </span>
               {feedback.exact ? (
                 <span className="pick-badge pick-badge--exact">Exakt +3</span>
@@ -132,6 +138,12 @@ export function MatchCard({
               Inget tips sparat för den här matchen
             </p>
           )}
+        </div>
+      )}
+
+      {bettingStats && (
+        <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--bg)]/40 p-3">
+          <MatchBettingSummary stats={bettingStats} compact />
         </div>
       )}
 

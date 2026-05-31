@@ -1,15 +1,13 @@
-import { updateMatchResult, getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
+import { clearMatchResult, getFirestoreConfigError, isFirestoreConfigured, updateMatchResult } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAdminPassword } from "@/lib/config";
+import { requireAdmin } from "@/lib/admin-auth";
 import { GROUP_MATCH_IDS } from "@/lib/matches-data";
 
 const validGroupIds = new Set(GROUP_MATCH_IDS);
 
 export async function POST(req: NextRequest) {
-  const password = req.headers.get("x-admin-password") ?? "";
-  if (!verifyAdminPassword(password)) {
-    return NextResponse.json({ error: "Wrong admin password" }, { status: 401 });
-  }
+  const auth = requireAdmin(req);
+  if (auth) return auth;
 
   if (!isFirestoreConfigured()) {
     return NextResponse.json(
@@ -20,12 +18,27 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const matchId = Number(body.matchId);
+
+  if (!validGroupIds.has(matchId)) {
+    return NextResponse.json({ error: "Invalid match" }, { status: 400 });
+  }
+
+  if (body.clear === true || body.action === "clear") {
+    const res = await clearMatchResult(matchId);
+    if (res.error || !res.data) {
+      return NextResponse.json(
+        { error: res.error ?? "Clear failed" },
+        { status: 500 },
+      );
+    }
+    return NextResponse.json({ match: res.data });
+  }
+
   const homeScore = Number(body.homeScore);
   const awayScore = Number(body.awayScore);
   const finished = body.finished !== false;
 
   if (
-    !validGroupIds.has(matchId) ||
     !Number.isInteger(homeScore) ||
     !Number.isInteger(awayScore) ||
     homeScore < 0 ||

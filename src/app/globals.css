@@ -481,3 +481,29 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
     opacity: 0.8;
   }
 }
+
+@media print {
+  body::before,
+  .football-decor,
+  .nav-bar,
+  .site-header,
+  button {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .app-shell {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .admin-export-print {
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+  }
+}

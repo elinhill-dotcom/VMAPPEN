@@ -10,6 +10,7 @@ import { ContinueAsPlayer } from "@/components/ContinueAsPlayer";
 import { MatchCard, type MatchView } from "@/components/MatchCard";
 import { PicksChecklist } from "@/components/PicksChecklist";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
+import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 import {
   KNOCKOUT_PICK_COUNT,
   countKnockoutFilled,
@@ -21,6 +22,8 @@ type PredMap = Record<number, { home: string; away: string }>;
 
 export default function PicksPage() {
   const { player, hydrated, remember } = usePlayerSession();
+  const { map: bettingStatsMap, available: statsAvailable } =
+    useMatchBettingStatsMap();
   const [matches, setMatches] = useState<MatchView[]>([]);
   const [preds, setPreds] = useState<PredMap>({});
   const [knockout, setKnockout] = useState<KnockoutFormState>(
@@ -361,6 +364,11 @@ export default function PicksPage() {
                     predAway={preds[m.id]?.away ?? ""}
                     locked={locked}
                     showResult
+                    bettingStats={
+                      statsAvailable
+                        ? (bettingStatsMap.get(m.id) ?? null)
+                        : null
+                    }
                     onChange={(home, away) =>
                       setPreds((prev) => ({
                         ...prev,

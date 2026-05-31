@@ -4,6 +4,7 @@ import {
   type KnockoutFormState,
   emptyKnockoutForm,
 } from "@/lib/knockout-picks";
+import { toSwedishTeam } from "@/lib/team-names";
 import { ALL_TEAMS } from "@/lib/teams";
 
 export type { KnockoutFormState };
@@ -32,7 +33,7 @@ function TeamSelect({
         <option value="">— Välj —</option>
         {ALL_TEAMS.map((t) => (
           <option key={t} value={t}>
-            {t}
+            {toSwedishTeam(t)}
           </option>
         ))}
       </select>

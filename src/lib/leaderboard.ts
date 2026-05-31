@@ -1,5 +1,10 @@
 import { JAR_CONTRIBUTION_EUR } from "@/lib/matches-data";
-import { scoreKnockoutPick } from "@/lib/knockout-scoring";
+import { scoreKnockoutPick, breakdownKnockoutPick } from "@/lib/knockout-scoring";
+import {
+  formatWinnerExplanation,
+  getTournamentStatus,
+  type TournamentStatus,
+} from "@/lib/player-breakdown";
 import { pointsForPrediction } from "@/lib/scoring";
 import {
   mapKnockoutAnswer,
@@ -127,23 +132,94 @@ export async function computeLeaderboard(): Promise<
   }
 }
 
+export type WinnerSummary = {
+  playerId: string;
+  name: string;
+  points: number;
+  explanation: string;
+};
+
 export async function getLeaderboardPayload(): Promise<
   DbResult<{
     entries: LeaderboardEntry[];
     playerCount: number;
     jarTotalEur: number;
     jarContributionEur: number;
+    tournament: TournamentStatus;
+    winner: WinnerSummary | null;
   }>
 > {
   const res = await computeLeaderboard();
   if (res.error || !res.data) return { data: null, error: res.error ?? "Misslyckades" };
   const playerCount = res.data.length;
+
+  let tournament: TournamentStatus = {
+    groupFinished: 0,
+    groupTotal: 0,
+    knockoutScored: false,
+    complete: false,
+  };
+  let winner: WinnerSummary | null = null;
+
+  try {
+    const db = getAdminFirestore();
+    const [matchesSnap, koAnswerDoc, koPicksSnap] = await Promise.all([
+      db.collection("matches").get(),
+      db.collection("knockout_answer").doc("config").get(),
+      db.collection("knockout_picks").get(),
+    ]);
+
+    const matches = matchesSnap.docs.map((doc) =>
+      mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
+    );
+
+    const answerRow = koAnswerDoc.exists
+      ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
+      : null;
+    const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
+    const answer =
+      mappedAnswer?.set && mappedAnswer.champion ? mappedAnswer : null;
+
+    tournament = getTournamentStatus(matches, !!answer);
+
+    if (tournament.complete && res.data.length > 0) {
+      const top = res.data[0]!;
+      const runnerUp = res.data[1];
+      let knockoutSlots: ReturnType<typeof breakdownKnockoutPick> = [];
+
+      const koDoc = koPicksSnap.docs.find((d) => d.id === top.playerId);
+      if (answer && koDoc) {
+        const pick = mapKnockoutPick({
+          id: koDoc.id,
+          ...koDoc.data(),
+        } as KnockoutPickRow);
+        knockoutSlots = breakdownKnockoutPick(pick, answer);
+      }
+
+      winner = {
+        playerId: top.playerId,
+        name: top.name,
+        points: top.points,
+        explanation: formatWinnerExplanation(
+          top.name,
+          top,
+          knockoutSlots,
+          runnerUp,
+        ),
+      };
+    }
+  } catch {
+    // Tournament metadata is optional — leaderboard still works without it.
+  }
+
   return {
     data: {
       entries: res.data,
       playerCount,
       jarTotalEur: playerCount * JAR_CONTRIBUTION_EUR,
       jarContributionEur: JAR_CONTRIBUTION_EUR,
+      tournament,
+      winner,
     },
     error: null,
   };

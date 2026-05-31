@@ -479,6 +479,28 @@ export async function updateMatchResult(
   }
 }
 
+export async function clearMatchResult(
+  matchId: number,
+): Promise<DbResult<ReturnType<typeof mapMatch>>> {
+  try {
+    const ref = getAdminFirestore()
+      .collection(COLLECTIONS.matches)
+      .doc(String(matchId));
+    await ref.update({
+      home_score: null,
+      away_score: null,
+      finished: false,
+    });
+    const doc = await ref.get();
+    return {
+      data: mapMatch({ id: matchId, ...doc.data() } as MatchRow),
+      error: null,
+    };
+  } catch (e) {
+    return { data: null, error: toErrorMessage(e) };
+  }
+}
+
 // —— Predictions ——
 
 export async function loadGroupPredictions(
