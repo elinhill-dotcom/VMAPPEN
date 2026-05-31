@@ -1,4 +1,4 @@
-import type { MatchBettingStats, OutcomePercents } from "@/lib/betting-stats";
+import type { MatchBettingStats, OutcomePercents } from "@/lib/betting-stats-types";
 
 export function OutcomeBar({
   homeTeam,

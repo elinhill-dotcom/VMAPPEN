@@ -4,7 +4,8 @@ import {
   formatWinnerExplanation,
   getTournamentStatus,
   type TournamentStatus,
-} from "@/lib/player-breakdown";
+} from "@/lib/player-breakdown-shared";
+import type { LeaderboardEntry } from "@/lib/leaderboard-types";
 import { pointsForPrediction } from "@/lib/scoring";
 import {
   mapKnockoutAnswer,
@@ -21,18 +22,7 @@ import type {
 } from "@/lib/firestore-types";
 import { getAdminFirestore, toErrorMessage, type DbResult } from "@/lib/firestore";
 
-export type LeaderboardEntry = {
-  playerId: string;
-  name: string;
-  points: number;
-  groupPoints: number;
-  knockoutPoints: number;
-  exactHits: number;
-  outcomeHits: number;
-  groupPicksCount: number;
-};
-
-export async function computeLeaderboard(): Promise<
+export type { LeaderboardEntry } from "@/lib/leaderboard-types";export async function computeLeaderboard(): Promise<
   DbResult<LeaderboardEntry[]>
 > {
   try {

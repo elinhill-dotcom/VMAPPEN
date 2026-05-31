@@ -1,5 +1,5 @@
 import { requireAdmin } from "@/lib/admin-auth";
-import { fetchPicksExport } from "@/lib/export-picks";
+import { fetchPicksExport } from "@/lib/export-picks-server";
 import { getFirestoreConfigError, isFirestoreConfigured } from "@/lib/firestore";
 import { NextRequest, NextResponse } from "next/server";
 

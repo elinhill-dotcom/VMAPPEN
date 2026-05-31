@@ -7,7 +7,7 @@ import {
   formatKnockoutDetail,
   formatPointsSummary,
   type PlayerBreakdown,
-} from "@/lib/player-breakdown";
+} from "@/lib/player-breakdown-shared";
 import { KNOCKOUT_POINTS } from "@/lib/knockout-scoring";
 
 type Props = {

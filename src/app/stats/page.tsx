@@ -12,7 +12,7 @@ import type {
   BettingStats,
   MatchBettingStats,
   TeamBettingStats,
-} from "@/lib/betting-stats";
+} from "@/lib/betting-stats-types";
 
 function PercentBar({
   label,

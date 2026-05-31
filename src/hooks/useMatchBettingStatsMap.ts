@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { MatchBettingStats } from "@/lib/betting-stats";
+import type { MatchBettingStats } from "@/lib/betting-stats-types";
 import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
 
 export function useMatchBettingStatsMap() {

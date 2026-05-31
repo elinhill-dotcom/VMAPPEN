@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { PlayerBreakdownView } from "@/components/PlayerBreakdownView";
-import type { PlayerBreakdown } from "@/lib/player-breakdown";
+import type { PlayerBreakdown } from "@/lib/player-breakdown-shared";
 
 export default function PlayerScorePage() {
   const params = useParams();

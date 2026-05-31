@@ -6,7 +6,7 @@ import { formatCestMatchKickoff } from "@/lib/datetime";
 import { isMatchLive } from "@/lib/match-live";
 import { evaluatePick } from "@/lib/pick-feedback";
 import { MatchBettingSummary } from "@/components/MatchBettingSummary";
-import type { MatchBettingStats } from "@/lib/betting-stats";
+import type { MatchBettingStats } from "@/lib/betting-stats-types";
 
 export type MatchView = {
   id: number;

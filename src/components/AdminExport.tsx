@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   downloadCsv,
   type PicksExportPayload,
-} from "@/lib/export-picks";
+} from "@/lib/export-picks-client";
 
 type Props = {
   password: string;
