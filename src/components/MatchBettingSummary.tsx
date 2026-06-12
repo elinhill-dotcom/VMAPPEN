@@ -1,4 +1,5 @@
 import type { MatchBettingStats, OutcomePercents } from "@/lib/betting-stats-types";
+import { evaluatePick } from "@/lib/pick-feedback";
 
 export function OutcomeBar({
   homeTeam,
@@ -47,18 +48,77 @@ export function OutcomeBar({
   );
 }
 
+type UserPickProps = {
+  home: string;
+  away: string;
+  label?: string;
+};
+
+type MatchForPick = {
+  finished: boolean;
+  homeScore: number | null;
+  awayScore: number | null;
+  homeTeam: string;
+  awayTeam: string;
+};
+
 type Props = {
   stats: MatchBettingStats;
   compact?: boolean;
+  userPick?: UserPickProps | null;
+  match?: MatchForPick;
 };
 
-export function MatchBettingSummary({ stats, compact = false }: Props) {
-  if (stats.tipCount === 0) return null;
+export function MatchBettingSummary({
+  stats,
+  compact = false,
+  userPick,
+  match,
+}: Props) {
+  if (stats.tipCount === 0 && !userPick) return null;
 
   const top = stats.topScores[0];
+  const pickLabel = userPick?.label ?? "Ditt tips";
+  const hasUserPick = !!userPick?.home && userPick.home !== "" && !!userPick?.away && userPick.away !== "";
+  const feedback =
+    userPick && match
+      ? evaluatePick(userPick.home, userPick.away, match)
+      : null;
 
   return (
     <div className="space-y-2">
+      {userPick && (
+        <div className="rounded-md border border-[var(--border)] bg-[var(--bg)]/50 px-2.5 py-2">
+          <p className="text-xs font-semibold text-[var(--accent)]">
+            {pickLabel}
+          </p>
+          {hasUserPick ? (
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-white">
+                {userPick.home}–{userPick.away}
+              </span>
+              {feedback?.hasPick && (
+                <>
+                  {feedback.exact ? (
+                    <span className="pick-badge pick-badge--exact">Exakt +3</span>
+                  ) : feedback.outcomeCorrect ? (
+                    <span className="pick-badge pick-badge--ok">Rätt utgång +1</span>
+                  ) : (
+                    <span className="pick-badge pick-badge--wrong">Fel</span>
+                  )}
+                </>
+              )}
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Inget tips sparat
+            </p>
+          )}
+        </div>
+      )}
+
+      {stats.tipCount > 0 && (
+        <>
       <p className="text-xs font-semibold text-[var(--muted)]">
         Familjens tips ({stats.tipCount})
       </p>
@@ -78,6 +138,8 @@ export function MatchBettingSummary({ stats, compact = false }: Props) {
             </>
           )}
         </p>
+      )}
+        </>
       )}
     </div>
   );

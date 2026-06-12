@@ -6,9 +6,14 @@ import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
 import { MatchBettingSummary } from "@/components/MatchBettingSummary";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
+import { usePlayerSession } from "@/hooks/usePlayerSession";
+
+type PredMap = Record<number, { home: string; away: string }>;
 
 export default function ResultsPage() {
+  const { player, hydrated } = usePlayerSession();
   const [matches, setMatches] = useState<MatchView[]>([]);
+  const [preds, setPreds] = useState<PredMap>({});
   const [filter, setFilter] = useState<"all" | "finished" | "upcoming">("all");
   const [group, setGroup] = useState<string>("all");
   const { map: bettingStatsMap, available: statsAvailable } =
@@ -19,6 +24,25 @@ export default function ResultsPage() {
       .then((r) => r.json())
       .then((d) => setMatches(d.matches ?? []));
   }, []);
+
+  useEffect(() => {
+    if (!player) {
+      setPreds({});
+      return;
+    }
+    fetch(`/api/predictions?playerId=${player.id}`)
+      .then((r) => r.json())
+      .then((d) => {
+        const map: PredMap = {};
+        for (const p of d.predictions ?? []) {
+          map[p.matchId] = {
+            home: String(p.homeScore),
+            away: String(p.awayScore),
+          };
+        }
+        setPreds(map);
+      });
+  }, [player]);
 
   const groups = useMemo(() => {
     const codes = new Set(
@@ -52,9 +76,20 @@ export default function ResultsPage() {
       <section>
         <h2 className="burst-heading text-xl">Matchresultat</h2>
         <p className="text-sm text-[var(--muted)] mt-2">
-          Alla gruppmatcher på ett ställe. Resultat läggs in efter varje match —
-          kolla <strong className="text-white">Mina tips</strong> för att se om
-          du hade rätt.
+          Alla gruppmatcher på ett ställe. Resultat läggs in efter varje match.
+          {statsAvailable && player && (
+            <>
+              {" "}
+              Du ser dina egna tips bredvid familjestatistiken.
+            </>
+          )}
+          {statsAvailable && hydrated && !player && (
+            <>
+              {" "}
+              Gå till <strong className="text-white">Mina tips</strong> och skriv
+              ditt namn för att se dina tips här.
+            </>
+          )}
         </p>
         <p className="text-sm text-[var(--accent)] mt-1">
           {finishedCount} / {matches.length} matcher spelade
@@ -117,6 +152,11 @@ export default function ResultsPage() {
                 <tbody>
                   {dayMatches.map((m) => {
                     const betting = bettingStatsMap.get(m.id);
+                    const userPick = player
+                      ? (preds[m.id] ?? { home: "", away: "" })
+                      : undefined;
+                    const showBettingBlock =
+                      statsAvailable && (!!betting || !!player);
                     return (
                       <tr
                         key={m.id}
@@ -129,9 +169,29 @@ export default function ResultsPage() {
                           <p className="text-xs text-[var(--muted)]">
                             {formatCestMatchKickoff(m.kickoffAt)}
                           </p>
-                          {statsAvailable && betting && (
+                          {showBettingBlock && (
                             <div className="mt-3 max-w-md">
-                              <MatchBettingSummary stats={betting} compact />
+                              <MatchBettingSummary
+                                stats={
+                                  betting ?? {
+                                    matchId: m.id,
+                                    homeTeam: m.homeTeam,
+                                    awayTeam: m.awayTeam,
+                                    dayLabel: m.dayLabel,
+                                    kickoffAt: m.kickoffAt,
+                                    groupCode: m.groupCode,
+                                    tipCount: 0,
+                                    outcomes: { home: 0, draw: 0, away: 0 },
+                                    topScores: [],
+                                    avgHome: 0,
+                                    avgAway: 0,
+                                    majorityOutcome: "draw" as const,
+                                  }
+                                }
+                                compact
+                                userPick={userPick}
+                                match={m}
+                              />
                             </div>
                           )}
                         </td>

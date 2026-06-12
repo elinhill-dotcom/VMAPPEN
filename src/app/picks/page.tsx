@@ -215,8 +215,10 @@ export default function PicksPage() {
     );
   }
 
+  const showSaveBar = !locked && matches.length > 0;
+
   return (
-    <div className="space-y-6">
+    <div className={`picks-page space-y-6${showSaveBar ? " picks-page--has-save-bar" : ""}`}>
       <PicksChecklist
         groupFilled={filledGroup}
         groupTotal={matches.length}
@@ -226,20 +228,8 @@ export default function PicksPage() {
         locked={locked}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold">Mina tips — {player.name}</h2>
-        </div>
-        {!locked && (
-          <button
-            type="button"
-            onClick={save}
-            disabled={saving}
-            className="rounded-lg bg-[var(--accent)] px-5 py-2 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
-          >
-            {saving ? "Sparar…" : "Spara alla tips"}
-          </button>
-        )}
+      <div>
+        <h2 className="text-xl font-semibold">Mina tips — {player.name}</h2>
       </div>
 
       {message && (
@@ -404,15 +394,37 @@ export default function PicksPage() {
         </>
       )}
 
-      {!locked && matches.length > 0 && (
-        <button
-          type="button"
-          onClick={save}
-          disabled={saving}
-          className="w-full rounded-lg bg-[var(--accent)] px-5 py-3 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
-        >
-          {saving ? "Sparar…" : "Spara alla tips"}
-        </button>
+      {showSaveBar && (
+        <div className="picks-save-bar" role="region" aria-label="Spara tips">
+          <div className="picks-save-bar__inner">
+            <div className="picks-save-bar__meta min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                Grupp {filledGroup}/{matches.length}
+                <span className="text-[var(--muted)]"> · </span>
+                Slutspel {knockoutFilled}/{KNOCKOUT_PICK_COUNT}
+              </p>
+              {message && (
+                <p
+                  className={`text-xs mt-0.5 truncate ${
+                    messageWarn
+                      ? "text-[var(--danger)]"
+                      : "text-[var(--success)]"
+                  }`}
+                >
+                  {message}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="picks-save-bar__btn shrink-0 rounded-lg bg-[var(--accent)] px-5 py-2.5 font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
+            >
+              {saving ? "Sparar…" : "Spara alla tips"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
