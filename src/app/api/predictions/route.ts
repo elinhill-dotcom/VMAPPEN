@@ -31,10 +31,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (predictionsLocked()) {
-    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
-  }
-
   const body = await req.json();
   const playerId = body.playerId as string | undefined;
   const items = body.predictions as
@@ -53,7 +49,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Player not found" }, { status: 404 });
   }
 
-  const saveRes = await saveGroupPredictions(playerId, items);
+  if (predictionsLocked()) {
+    if (!playerRes.data.picksUnlocked) {
+      return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
+    }
+  }
+
+  const onlyUnfinished = predictionsLocked() && playerRes.data.picksUnlocked;
+  const saveRes = await saveGroupPredictions(playerId, items, {
+    onlyUnfinished,
+  });
   if (saveRes.error || !saveRes.data) {
     return NextResponse.json(
       { error: saveRes.error ?? "Save failed" },

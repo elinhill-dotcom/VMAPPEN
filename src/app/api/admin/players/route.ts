@@ -1,7 +1,21 @@
-import { clearPlayerPicks, getFirestoreConfigError, deletePlayer, fetchAdminPlayers, findPlayerById, isPlayerNameTaken, renamePlayer, isFirestoreConfigured } from "@/lib/firestore";
+import {
+  clearPlayerMatchPick,
+  clearPlayerPicks,
+  createPlayerByName,
+  deletePlayer,
+  fetchAdminPlayers,
+  findPlayerById,
+  getFirestoreConfigError,
+  isFirestoreConfigured,
+  isPlayerNameTaken,
+  renamePlayer,
+  saveAdminPlayerPrediction,
+  setPlayerPicksUnlocked,
+} from "@/lib/firestore";
+import { CACHE_KEYS, invalidateApiCache } from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { predictionsLocked, PICKS_LOCKED_MESSAGE } from "@/lib/config";
+import { predictionsLocked } from "@/lib/config";
 
 export async function GET(req: NextRequest) {
   const auth = requireAdmin(req);
@@ -53,7 +67,7 @@ export async function PATCH(req: NextRequest) {
   }
   if (takenRes.data) {
     return NextResponse.json(
-      { error: "That name is already taken." },
+      { error: "Namnet är redan taget." },
       { status: 409 },
     );
   }
@@ -94,6 +108,7 @@ export async function DELETE(req: NextRequest) {
     );
   }
 
+  invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
   return NextResponse.json({ ok: true });
 }
 
@@ -109,31 +124,101 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  if (body.action !== "clear-picks") {
-    return NextResponse.json({ error: "Unknown action" }, { status: 400 });
+  const action = body.action as string | undefined;
+
+  if (action === "create-player") {
+    const name = typeof body.name === "string" ? body.name.trim() : "";
+    const res = await createPlayerByName(name);
+    if (res.error || !res.data) {
+      return NextResponse.json(
+        { error: res.error ?? "Kunde inte skapa spelare" },
+        { status: res.error?.includes("taget") ? 409 : 400 },
+      );
+    }
+    invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
+    return NextResponse.json({ player: res.data }, { status: 201 });
   }
 
-  const playerId = body.playerId as string | undefined;
-  if (!playerId) {
-    return NextResponse.json({ error: "Missing playerId" }, { status: 400 });
+  if (action === "unlock-picks") {
+    const playerId = body.playerId as string | undefined;
+    const unlocked = body.unlocked === true;
+    if (!playerId) {
+      return NextResponse.json({ error: "Missing playerId" }, { status: 400 });
+    }
+    const res = await setPlayerPicksUnlocked(playerId, unlocked);
+    if (res.error || !res.data) {
+      return NextResponse.json(
+        { error: res.error ?? "Kunde inte uppdatera" },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json({ player: res.data });
   }
 
-  if (predictionsLocked()) {
-    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
+  if (action === "set-match-pick") {
+    const playerId = body.playerId as string | undefined;
+    const matchId = Number(body.matchId);
+    const homeScore = Number(body.homeScore);
+    const awayScore = Number(body.awayScore);
+    if (!playerId || !Number.isInteger(matchId)) {
+      return NextResponse.json({ error: "Ogiltig data" }, { status: 400 });
+    }
+    const playerRes = await findPlayerById(playerId);
+    if (!playerRes.data) {
+      return NextResponse.json({ error: "Spelaren hittades inte." }, { status: 404 });
+    }
+    const res = await saveAdminPlayerPrediction(
+      playerId,
+      matchId,
+      homeScore,
+      awayScore,
+    );
+    if (res.error || !res.data) {
+      return NextResponse.json(
+        { error: res.error ?? "Kunde inte spara tips" },
+        { status: 400 },
+      );
+    }
+    invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
+    return NextResponse.json({ prediction: res.data });
   }
 
-  const playerRes = await findPlayerById(playerId);
-  if (playerRes.error) {
-    return NextResponse.json({ error: playerRes.error }, { status: 500 });
-  }
-  if (!playerRes.data) {
-    return NextResponse.json({ error: "Player not found" }, { status: 404 });
+  if (action === "clear-match-pick") {
+    const playerId = body.playerId as string | undefined;
+    const matchId = Number(body.matchId);
+    if (!playerId || !Number.isInteger(matchId)) {
+      return NextResponse.json({ error: "Ogiltig data" }, { status: 400 });
+    }
+    const res = await clearPlayerMatchPick(playerId, matchId);
+    if (res.error) {
+      return NextResponse.json({ error: res.error }, { status: 500 });
+    }
+    invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
+    return NextResponse.json({ ok: true });
   }
 
-  const clearRes = await clearPlayerPicks(playerId);
-  if (clearRes.error) {
-    return NextResponse.json({ error: clearRes.error }, { status: 500 });
+  if (action === "clear-picks") {
+    const playerId = body.playerId as string | undefined;
+    if (!playerId) {
+      return NextResponse.json({ error: "Missing playerId" }, { status: 400 });
+    }
+
+    const playerRes = await findPlayerById(playerId);
+    if (playerRes.error) {
+      return NextResponse.json({ error: playerRes.error }, { status: 500 });
+    }
+    if (!playerRes.data) {
+      return NextResponse.json({ error: "Player not found" }, { status: 404 });
+    }
+
+    const clearRes = await clearPlayerPicks(playerId);
+    if (clearRes.error) {
+      return NextResponse.json({ error: clearRes.error }, { status: 500 });
+    }
+
+    invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
+    return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }

@@ -32,6 +32,7 @@ export function mapPlayer(row: PlayerRow) {
     id: row.id,
     name: row.name,
     createdAt: toIsoString(row.created_at),
+    picksUnlocked: row.picks_unlocked === true,
   };
 }
 

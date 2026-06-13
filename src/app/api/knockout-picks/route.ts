@@ -40,10 +40,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (predictionsLocked()) {
-    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
-  }
-
   const body = await req.json();
   const playerId = body.playerId as string | undefined;
   if (!playerId) {
@@ -56,6 +52,10 @@ export async function POST(req: NextRequest) {
   }
   if (!playerRes.data) {
     return NextResponse.json({ error: "Player not found" }, { status: 404 });
+  }
+
+  if (predictionsLocked() && !playerRes.data.picksUnlocked) {
+    return NextResponse.json({ error: PICKS_LOCKED_MESSAGE }, { status: 403 });
   }
 
   const form: KnockoutFormState = {

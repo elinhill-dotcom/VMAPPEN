@@ -158,6 +158,118 @@ function predictionId(playerId: string, matchId: number) {
 
 // —— Players (display name only, no auth) ——
 
+export async function createPlayerByName(
+  name: string,
+): Promise<DbResult<ReturnType<typeof mapPlayer>>> {
+  const trimmed = name.trim();
+  if (trimmed.length < 2 || trimmed.length > 80) {
+    return { data: null, error: "Ange ett namn (2–80 tecken)." };
+  }
+
+  try {
+    const taken = await isPlayerNameTaken(trimmed);
+    if (taken.error) return { data: null, error: taken.error };
+    if (taken.data) {
+      return { data: null, error: "Namnet är redan taget." };
+    }
+
+    const col = getAdminFirestore().collection(COLLECTIONS.players);
+    const ref = col.doc();
+    const created_at = new Date().toISOString();
+    await ref.set({ name: trimmed, created_at, picks_unlocked: false });
+    return {
+      data: mapPlayer({
+        id: ref.id,
+        name: trimmed,
+        created_at,
+        picks_unlocked: false,
+      }),
+      error: null,
+    };
+  } catch (e) {
+    return { data: null, error: toErrorMessage(e) };
+  }
+}
+
+export async function setPlayerPicksUnlocked(
+  playerId: string,
+  unlocked: boolean,
+): Promise<DbResult<ReturnType<typeof mapPlayer>>> {
+  try {
+    const ref = getAdminFirestore().collection(COLLECTIONS.players).doc(playerId);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      return { data: null, error: "Spelaren hittades inte." };
+    }
+    await ref.update({ picks_unlocked: unlocked });
+    const row = { id: doc.id, ...doc.data(), picks_unlocked: unlocked } as PlayerRow;
+    return { data: mapPlayer(row), error: null };
+  } catch (e) {
+    return { data: null, error: toErrorMessage(e) };
+  }
+}
+
+export async function saveAdminPlayerPrediction(
+  playerId: string,
+  matchId: number,
+  homeScore: number,
+  awayScore: number,
+): Promise<DbResult<ReturnType<typeof mapPrediction>>> {
+  if (!validGroupIds.has(matchId)) {
+    return { data: null, error: "Ogiltig match." };
+  }
+  if (
+    !Number.isInteger(homeScore) ||
+    !Number.isInteger(awayScore) ||
+    homeScore < 0 ||
+    awayScore < 0 ||
+    homeScore > 20 ||
+    awayScore > 20
+  ) {
+    return { data: null, error: "Ogiltigt resultat." };
+  }
+
+  try {
+    const db = getAdminFirestore();
+    const ref = db
+      .collection(COLLECTIONS.predictions)
+      .doc(predictionId(playerId, matchId));
+    await ref.set({
+      player_id: playerId,
+      match_id: matchId,
+      home_score: homeScore,
+      away_score: awayScore,
+    });
+    const doc = await ref.get();
+    return {
+      data: mapPrediction({ id: doc.id, ...doc.data() } as PredictionRow),
+      error: null,
+    };
+  } catch (e) {
+    return { data: null, error: toErrorMessage(e) };
+  }
+}
+
+export async function clearPlayerMatchPick(
+  playerId: string,
+  matchId: number,
+): Promise<DbResult<true>> {
+  if (!validGroupIds.has(matchId)) {
+    return { data: null, error: "Ogiltig match." };
+  }
+
+  try {
+    const ref = getAdminFirestore()
+      .collection(COLLECTIONS.predictions)
+      .doc(predictionId(playerId, matchId));
+    const doc = await ref.get();
+    if (doc.exists) await ref.delete();
+    return { data: true, error: null };
+  } catch (e) {
+    return { data: null, error: toErrorMessage(e) };
+  }
+}
+
 export async function findOrCreatePlayerByName(
   name: string,
 ): Promise<DbResult<ReturnType<typeof mapPlayer>>> {
@@ -266,6 +378,7 @@ export async function fetchAdminPlayers(): Promise<
         createdAt: row.created_at,
         groupPicksCount: groupCount.get(row.id) ?? 0,
         hasKnockoutPick: hasKo.has(row.id),
+        picksUnlocked: row.picks_unlocked === true,
       };
     });
 
@@ -538,14 +651,29 @@ export async function loadGroupPredictions(
 export async function saveGroupPredictions(
   playerId: string,
   items: { matchId: number; homeScore: number; awayScore: number }[],
+  options?: { onlyUnfinished?: boolean },
 ): Promise<DbResult<{ savedCount: number }>> {
   try {
     const db = getAdminFirestore();
+    const unfinishedIds = new Set<number>();
+
+    if (options?.onlyUnfinished) {
+      const matchesSnap = await db
+        .collection(COLLECTIONS.matches)
+        .where("stage", "==", "group")
+        .get();
+      for (const doc of matchesSnap.docs) {
+        const row = doc.data() as MatchRow;
+        if (!row.finished) unfinishedIds.add(Number(doc.id));
+      }
+    }
+
     const batch = db.batch();
     let writeCount = 0;
 
     for (const item of items) {
       if (!validGroupIds.has(item.matchId)) continue;
+      if (options?.onlyUnfinished && !unfinishedIds.has(item.matchId)) continue;
       const h = item.homeScore;
       const a = item.awayScore;
       if (

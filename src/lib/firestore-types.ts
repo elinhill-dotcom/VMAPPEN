@@ -4,6 +4,7 @@ export type PlayerRow = {
   id: string;
   name: string;
   created_at: string;
+  picks_unlocked?: boolean;
 };
 
 export type MatchRow = {

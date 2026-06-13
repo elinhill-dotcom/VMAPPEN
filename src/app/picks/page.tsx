@@ -10,9 +10,13 @@ import { ContinueAsPlayer } from "@/components/ContinueAsPlayer";
 import { MatchCard, type MatchView } from "@/components/MatchCard";
 import { PicksChecklist } from "@/components/PicksChecklist";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
-import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
+import { usePlayerPickAccess } from "@/hooks/usePlayerPickAccess";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 import { PICKS_LOCKED_MESSAGE } from "@/lib/config";
+import {
+  canPlayerEditMatch,
+  PLAYER_UNLOCKED_MESSAGE,
+} from "@/lib/pick-access";
 import {
   KNOCKOUT_PICK_COUNT,
   countKnockoutFilled,
@@ -24,7 +28,7 @@ type PredMap = Record<number, { home: string; away: string }>;
 
 export default function PicksPage() {
   const { player, hydrated, remember } = usePlayerSession();
-  const { locked } = usePredictionsLocked();
+  const { access: pickAccess } = usePlayerPickAccess(player?.id);
   const { map: bettingStatsMap, available: statsAvailable } =
     useMatchBettingStatsMap();
   const [matches, setMatches] = useState<MatchView[]>([]);
@@ -141,7 +145,7 @@ export default function PicksPage() {
 
   async function save() {
     if (!player) return;
-    if (locked) {
+    if (!pickAccess.canSavePicks) {
       setMessage(PICKS_LOCKED_MESSAGE);
       setMessageWarn(true);
       return;
@@ -215,7 +219,9 @@ export default function PicksPage() {
     );
   }
 
-  const showSaveBar = !locked && matches.length > 0;
+  const partialUnlock =
+    pickAccess.globallyLocked && pickAccess.playerUnlocked;
+  const showSaveBar = pickAccess.canSavePicks && matches.length > 0;
 
   return (
     <div className={`picks-page space-y-6${showSaveBar ? " picks-page--has-save-bar" : ""}`}>
@@ -225,7 +231,7 @@ export default function PicksPage() {
         knockout={knockout}
         activeTab={tab}
         onGoTo={setTab}
-        locked={locked}
+        locked={!pickAccess.canSavePicks}
       />
 
       <div>
@@ -256,13 +262,19 @@ export default function PicksPage() {
         </p>
       )}
 
-      {locked && (
+      {!pickAccess.canSavePicks && (
         <p className="rounded-lg bg-[var(--danger)]/20 text-[var(--danger)] px-4 py-2 text-sm">
           {PICKS_LOCKED_MESSAGE} Endast visning.
         </p>
       )}
 
-      {!locked && tab === "group" && groupDone && !knockoutDone && (
+      {partialUnlock && (
+        <p className="rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-2 text-sm text-[var(--muted)]">
+          {PLAYER_UNLOCKED_MESSAGE}
+        </p>
+      )}
+
+      {!pickAccess.canSavePicks && tab === "group" && groupDone && !knockoutDone && (
         <p className="rounded-lg border border-[var(--danger)]/50 bg-[var(--danger)]/10 px-4 py-3 text-sm">
           <strong>Stanna inte här!</strong> Gruppspelet ser klart ut. Öppna{" "}
           <button
@@ -356,7 +368,7 @@ export default function PicksPage() {
                     match={m}
                     predHome={preds[m.id]?.home ?? ""}
                     predAway={preds[m.id]?.away ?? ""}
-                    locked={locked}
+                    locked={!canPlayerEditMatch(m, pickAccess)}
                     showResult
                     bettingStats={
                       statsAvailable
@@ -388,7 +400,7 @@ export default function PicksPage() {
           </p>
           <KnockoutPickForm
             form={knockout}
-            locked={locked}
+            locked={!pickAccess.canSavePicks}
             onChange={setKnockout}
           />
         </>
