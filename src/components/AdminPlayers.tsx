@@ -14,6 +14,27 @@ type AdminPlayer = {
 
 type PredMap = Record<number, { home: string; away: string }>;
 
+type RowStatus = { type: "success" | "error"; text: string };
+
+function parsePickScores(home: string, away: string): { ok: true; home: number; away: number } | { ok: false; error: string } {
+  if (home.trim() === "" || away.trim() === "") {
+    return { ok: false, error: "Ange båda målen." };
+  }
+  const homeScore = Number(home);
+  const awayScore = Number(away);
+  if (
+    !Number.isInteger(homeScore) ||
+    !Number.isInteger(awayScore) ||
+    homeScore < 0 ||
+    awayScore < 0 ||
+    homeScore > 20 ||
+    awayScore > 20
+  ) {
+    return { ok: false, error: "Ogiltigt resultat (0–20)." };
+  }
+  return { ok: true, home: homeScore, away: awayScore };
+}
+
 type Props = {
   password: string;
   onMessage: (msg: string, isError?: boolean) => void;
@@ -28,31 +49,44 @@ export function AdminPlayers({ password, onMessage }: Props) {
   const [creating, setCreating] = useState(false);
   const [managePlayerId, setManagePlayerId] = useState<string | null>(null);
   const [matches, setMatches] = useState<MatchView[]>([]);
-  const [pickEdits, setPickEdits] = useState<PredMap>({});
+  const [pickEditsByPlayer, setPickEditsByPlayer] = useState<
+    Record<string, PredMap>
+  >({});
   const [loadingPicks, setLoadingPicks] = useState(false);
+  const [savingMatchId, setSavingMatchId] = useState<number | null>(null);
+  const [rowStatus, setRowStatus] = useState<Record<number, RowStatus>>({});
 
   const headers = {
     "Content-Type": "application/json",
     "x-admin-password": password,
   };
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options?: { silent?: boolean }) => {
     if (!password) return;
     setLoading(true);
-    const res = await fetch("/api/admin/players", { headers });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) {
-      onMessage(data.error ?? "Kunde inte ladda spelare", true);
-      return;
+    try {
+      const res = await fetch("/api/admin/players", { headers });
+      const data = await res.json().catch(() => ({}));
+      setLoading(false);
+      if (!res.ok) {
+        if (!options?.silent) {
+          onMessage(data.error ?? "Kunde inte ladda spelare", true);
+        }
+        return;
+      }
+      setPlayers(data.players);
+      setLocked(data.locked);
+      const names: Record<string, string> = {};
+      for (const p of data.players) {
+        names[p.id] = p.name;
+      }
+      setEdits(names);
+    } catch {
+      setLoading(false);
+      if (!options?.silent) {
+        onMessage("Kunde inte ladda spelare.", true);
+      }
     }
-    setPlayers(data.players);
-    setLocked(data.locked);
-    const names: Record<string, string> = {};
-    for (const p of data.players) {
-      names[p.id] = p.name;
-    }
-    setEdits(names);
   }, [password, onMessage]);
 
   useEffect(() => {
@@ -132,45 +166,115 @@ export function AdminPlayers({ password, onMessage }: Props) {
       return;
     }
     setManagePlayerId(playerId);
+    setRowStatus({});
     setLoadingPicks(true);
-    const res = await fetch(`/api/predictions?playerId=${playerId}`);
-    const data = await res.json();
-    setLoadingPicks(false);
-    const map: PredMap = {};
-    for (const p of data.predictions ?? []) {
-      map[p.matchId] = {
-        home: String(p.homeScore),
-        away: String(p.awayScore),
-      };
+    try {
+      const res = await fetch(`/api/predictions?playerId=${playerId}`);
+      const data = await res.json().catch(() => ({}));
+      const map: PredMap = {};
+      for (const p of data.predictions ?? []) {
+        map[p.matchId] = {
+          home: String(p.homeScore),
+          away: String(p.awayScore),
+        };
+      }
+      setPickEditsByPlayer((prev) => ({ ...prev, [playerId]: map }));
+    } finally {
+      setLoadingPicks(false);
     }
-    setPickEdits(map);
   }
 
-  async function saveMatchPick(playerId: string, matchId: number) {
-    const pick = pickEdits[matchId];
-    if (!pick?.home || !pick?.away) {
-      onMessage("Ange hemma- och bortamål.", true);
-      return;
-    }
-    onMessage("");
-    const res = await fetch("/api/admin/players", {
-      method: "POST",
-      headers,
-      body: JSON.stringify({
-        action: "set-match-pick",
-        playerId,
-        matchId,
-        homeScore: Number(pick.home),
-        awayScore: Number(pick.away),
-      }),
+  function updatePickEdit(
+    playerId: string,
+    matchId: number,
+    field: "home" | "away",
+    value: string,
+  ) {
+    setPickEditsByPlayer((prev) => ({
+      ...prev,
+      [playerId]: {
+        ...prev[playerId],
+        [matchId]: {
+          home:
+            field === "home" ? value : (prev[playerId]?.[matchId]?.home ?? ""),
+          away:
+            field === "away" ? value : (prev[playerId]?.[matchId]?.away ?? ""),
+        },
+      },
+    }));
+    setRowStatus((prev) => {
+      const next = { ...prev };
+      delete next[matchId];
+      return next;
     });
-    const data = await res.json();
-    if (!res.ok) {
-      onMessage(data.error ?? "Kunde inte spara tips", true);
+  }
+
+  async function saveMatchPick(
+    playerId: string,
+    matchId: number,
+    home: string,
+    away: string,
+  ) {
+    const parsed = parsePickScores(home, away);
+    if (!parsed.ok) {
+      setRowStatus((prev) => ({
+        ...prev,
+        [matchId]: { type: "error", text: parsed.error },
+      }));
+      onMessage(parsed.error, true);
       return;
     }
-    onMessage(`Tips sparat för match #${matchId}.`);
-    load();
+
+    setSavingMatchId(matchId);
+    onMessage("");
+    try {
+      const res = await fetch("/api/admin/players", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+          action: "set-match-pick",
+          playerId,
+          matchId,
+          homeScore: parsed.home,
+          awayScore: parsed.away,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const err = data.error ?? "Kunde inte spara tips";
+        setRowStatus((prev) => ({
+          ...prev,
+          [matchId]: { type: "error", text: err },
+        }));
+        onMessage(err, true);
+        return;
+      }
+      setPickEditsByPlayer((prev) => ({
+        ...prev,
+        [playerId]: {
+          ...prev[playerId],
+          [matchId]: {
+            home: String(parsed.home),
+            away: String(parsed.away),
+          },
+        },
+      }));
+      setRowStatus((prev) => ({
+        ...prev,
+        [matchId]: { type: "success", text: "Sparat!" },
+      }));
+      onMessage(`Tips sparat för match #${matchId}.`);
+      load({ silent: true });
+    } catch {
+      const err = "Nätverksfel — kunde inte spara.";
+      setRowStatus((prev) => ({
+        ...prev,
+        [matchId]: { type: "error", text: err },
+      }));
+      onMessage(err, true);
+    } finally {
+      setSavingMatchId(null);
+    }
   }
 
   async function clearMatchPick(playerId: string, matchId: number) {
@@ -185,11 +289,14 @@ export function AdminPlayers({ password, onMessage }: Props) {
       onMessage(data.error ?? "Kunde inte ta bort tips", true);
       return;
     }
-    setPickEdits((prev) => {
-      const next = { ...prev };
-      delete next[matchId];
-      return next;
-    });
+    setPickEditsByPlayer((prev) => ({
+      ...prev,
+      [playerId]: Object.fromEntries(
+        Object.entries(prev[playerId] ?? {}).filter(
+          ([id]) => Number(id) !== matchId,
+        ),
+      ),
+    }));
     onMessage(`Tips borttaget för match #${matchId}.`);
     load();
   }
@@ -214,7 +321,9 @@ export function AdminPlayers({ password, onMessage }: Props) {
       return;
     }
     onMessage(`Tips rensade för ${playerName}.`);
-    if (managePlayerId === playerId) setPickEdits({});
+    if (managePlayerId === playerId) {
+      setPickEditsByPlayer((prev) => ({ ...prev, [playerId]: {} }));
+    }
     load();
   }
 
@@ -387,8 +496,11 @@ export function AdminPlayers({ password, onMessage }: Props) {
                   ) : (
                     <ul className="space-y-2 max-h-80 overflow-y-auto">
                       {finishedMatches.map((m) => {
-                        const pick = pickEdits[m.id] ?? { home: "", away: "" };
+                        const playerPicks = pickEditsByPlayer[p.id] ?? {};
+                        const pick = playerPicks[m.id] ?? { home: "", away: "" };
                         const hasPick = pick.home !== "" && pick.away !== "";
+                        const status = rowStatus[m.id];
+                        const saving = savingMatchId === m.id;
                         return (
                           <li
                             key={m.id}
@@ -402,23 +514,29 @@ export function AdminPlayers({ password, onMessage }: Props) {
                                 </span>
                               )}
                             </p>
-                            <div className="flex flex-wrap items-center gap-2">
+                            <form
+                              className="flex flex-wrap items-center gap-2"
+                              onSubmit={(e) => {
+                                e.preventDefault();
+                                saveMatchPick(
+                                  p.id,
+                                  m.id,
+                                  pick.home,
+                                  pick.away,
+                                );
+                              }}
+                            >
                               <input
                                 type="number"
                                 min={0}
                                 max={20}
                                 value={pick.home}
                                 onChange={(e) =>
-                                  setPickEdits((prev) => ({
-                                    ...prev,
-                                    [m.id]: {
-                                      home: e.target.value,
-                                      away: prev[m.id]?.away ?? "",
-                                    },
-                                  }))
+                                  updatePickEdit(p.id, m.id, "home", e.target.value)
                                 }
                                 className="w-14 rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-center"
                                 aria-label="Hemma"
+                                required
                               />
                               <span className="text-[var(--muted)]">–</span>
                               <input
@@ -427,23 +545,18 @@ export function AdminPlayers({ password, onMessage }: Props) {
                                 max={20}
                                 value={pick.away}
                                 onChange={(e) =>
-                                  setPickEdits((prev) => ({
-                                    ...prev,
-                                    [m.id]: {
-                                      home: prev[m.id]?.home ?? "",
-                                      away: e.target.value,
-                                    },
-                                  }))
+                                  updatePickEdit(p.id, m.id, "away", e.target.value)
                                 }
                                 className="w-14 rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-center"
                                 aria-label="Borta"
+                                required
                               />
                               <button
-                                type="button"
-                                onClick={() => saveMatchPick(p.id, m.id)}
-                                className="rounded bg-[var(--accent)] px-2 py-1 text-xs font-semibold text-[var(--accent-foreground)]"
+                                type="submit"
+                                disabled={saving}
+                                className="rounded bg-[var(--accent)] px-2 py-1 text-xs font-semibold text-[var(--accent-foreground)] disabled:opacity-50"
                               >
-                                Spara tips
+                                {saving ? "Sparar…" : "Spara tips"}
                               </button>
                               {hasPick && (
                                 <button
@@ -454,7 +567,18 @@ export function AdminPlayers({ password, onMessage }: Props) {
                                   Ta bort
                                 </button>
                               )}
-                            </div>
+                            </form>
+                            {status && (
+                              <p
+                                className={`mt-2 text-xs ${
+                                  status.type === "error"
+                                    ? "text-[var(--danger)]"
+                                    : "text-[var(--success)]"
+                                }`}
+                              >
+                                {status.text}
+                              </p>
+                            )}
                           </li>
                         );
                       })}
@@ -469,7 +593,7 @@ export function AdminPlayers({ password, onMessage }: Props) {
 
       <button
         type="button"
-        onClick={load}
+        onClick={() => load()}
         className="text-sm text-[var(--muted)] underline hover:text-white"
       >
         Uppdatera listan
