@@ -409,6 +409,21 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
   }
 }
 
+.match-card--played-closed {
+  opacity: 0.72;
+  filter: grayscale(0.45);
+}
+
+.match-card--played-closed .match-card__closed-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+}
+
 .picks-page--has-save-bar {
   padding-bottom: 5.75rem;
 }

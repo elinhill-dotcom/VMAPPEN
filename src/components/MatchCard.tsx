@@ -28,6 +28,7 @@ type Props = {
   predHome: string;
   predAway: string;
   locked: boolean;
+  lockedReason?: "played" | "global";
   onChange: (home: string, away: string) => void;
   showResult?: boolean;
   pickLabel?: string;
@@ -43,12 +44,14 @@ export function MatchCard({
   predHome,
   predAway,
   locked,
+  lockedReason,
   onChange,
   showResult,
   pickLabel = "Ditt tips",
   bettingStats,
 }: Props) {
   const featured = match.featured;
+  const playedClosed = locked && lockedReason === "played";
   const [live, setLive] = useState(() => isMatchLive(match.kickoffAt));
 
   useEffect(() => {
@@ -63,12 +66,19 @@ export function MatchCard({
 
   return (
     <article
-      className={`rounded-xl border p-4 ${
-        featured
-          ? "border-[var(--featured-border)] bg-[var(--featured)] ring-1 ring-[var(--featured-border)]/40"
-          : "border-[var(--border)] bg-[var(--card)]"
+      className={`match-card rounded-xl border p-4 ${
+        playedClosed
+          ? "match-card--played-closed border-[var(--border)] bg-[var(--card)]/40"
+          : featured
+            ? "border-[var(--featured-border)] bg-[var(--featured)] ring-1 ring-[var(--featured-border)]/40"
+            : "border-[var(--border)] bg-[var(--card)]"
       }`}
     >
+      {playedClosed && (
+        <p className="match-card__closed-label mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+          Redan spelad — kan inte bettas
+        </p>
+      )}
       <div className="mb-3 flex flex-wrap items-center gap-2 text-xs text-[var(--muted)]">
         <time>{formatCestMatchKickoff(match.kickoffAt)}</time>
         {match.groupCode && (
@@ -95,7 +105,7 @@ export function MatchCard({
             value={predHome}
             disabled={locked}
             onChange={(e) => onChange(e.target.value, predAway)}
-            className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center"
+            className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center disabled:cursor-not-allowed disabled:opacity-60"
             aria-label={`Mål ${match.homeTeam}`}
           />
           <span className="text-[var(--muted)]">–</span>
@@ -106,14 +116,29 @@ export function MatchCard({
             value={predAway}
             disabled={locked}
             onChange={(e) => onChange(predHome, e.target.value)}
-            className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center"
+            className="w-12 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-2 text-center disabled:cursor-not-allowed disabled:opacity-60"
             aria-label={`Mål ${match.awayTeam}`}
           />
         </div>
         <span className="font-semibold">{match.awayTeam}</span>
       </div>
 
-      {feedback && (
+      {playedClosed && match.finished && match.homeScore !== null && match.awayScore !== null && (
+        <p className="mt-3 text-center text-xs text-[var(--muted)]">
+          Slutresultat:{" "}
+          <strong className="text-white/80">
+            {match.homeScore}–{match.awayScore}
+          </strong>
+          {predHome !== "" && predAway !== "" && (
+            <>
+              {" "}
+              · Ditt tips: {predHome}–{predAway}
+            </>
+          )}
+        </p>
+      )}
+
+      {feedback && !playedClosed && (
         <div className="mt-3 rounded-lg border border-[var(--border)] bg-[var(--bg)]/50 p-3 text-sm space-y-2">
           <p className="text-center text-[var(--muted)]">
             Slutresultat:{" "}

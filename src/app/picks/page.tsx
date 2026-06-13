@@ -270,7 +270,9 @@ export default function PicksPage() {
 
       {partialUnlock && (
         <p className="rounded-lg border border-[var(--accent)]/40 bg-[var(--accent)]/10 px-4 py-2 text-sm text-[var(--muted)]">
-          {PLAYER_UNLOCKED_MESSAGE}
+          {PLAYER_UNLOCKED_MESSAGE} Matcher markerade{" "}
+          <strong className="text-white">grå</strong> med texten &quot;Redan
+          spelad&quot; kan inte ändras.
         </p>
       )}
 
@@ -362,27 +364,33 @@ export default function PicksPage() {
                 {day}
               </h3>
               <div className="space-y-3">
-                {dayMatches.map((m) => (
-                  <MatchCard
-                    key={m.id}
-                    match={m}
-                    predHome={preds[m.id]?.home ?? ""}
-                    predAway={preds[m.id]?.away ?? ""}
-                    locked={!canPlayerEditMatch(m, pickAccess)}
-                    showResult
-                    bettingStats={
-                      statsAvailable
-                        ? (bettingStatsMap.get(m.id) ?? null)
-                        : null
-                    }
-                    onChange={(home, away) =>
-                      setPreds((prev) => ({
-                        ...prev,
-                        [m.id]: { home, away },
-                      }))
-                    }
-                  />
-                ))}
+                {dayMatches.map((m) => {
+                  const canEdit = canPlayerEditMatch(m, pickAccess);
+                  return (
+                    <MatchCard
+                      key={m.id}
+                      match={m}
+                      predHome={preds[m.id]?.home ?? ""}
+                      predAway={preds[m.id]?.away ?? ""}
+                      locked={!canEdit}
+                      lockedReason={
+                        partialUnlock && m.finished ? "played" : undefined
+                      }
+                      showResult
+                      bettingStats={
+                        statsAvailable
+                          ? (bettingStatsMap.get(m.id) ?? null)
+                          : null
+                      }
+                      onChange={(home, away) =>
+                        setPreds((prev) => ({
+                          ...prev,
+                          [m.id]: { home, away },
+                        }))
+                      }
+                    />
+                  );
+                })}
               </div>
             </section>
           ))}
