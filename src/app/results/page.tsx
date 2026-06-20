@@ -7,6 +7,8 @@ import type { MatchView } from "@/components/MatchCard";
 import { MatchBettingSummary } from "@/components/MatchBettingSummary";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
+import { useScrollToTodayMatchDay } from "@/hooks/useScrollToTodayMatchDay";
+import { daySectionId } from "@/lib/match-day-scroll";
 
 type PredMap = Record<number, { home: string; away: string }>;
 
@@ -70,6 +72,12 @@ export default function ResultsPage() {
   }, [shown]);
 
   const finishedCount = matches.filter((m) => m.finished).length;
+
+  useScrollToTodayMatchDay(
+    byDay,
+    matches.length > 0 && byDay.length > 0,
+    `${filter}-${group}`,
+  );
 
   return (
     <div className="space-y-6">
@@ -135,7 +143,7 @@ export default function ResultsPage() {
         <p className="text-[var(--muted)]">Inga matcher matchar filtret.</p>
       ) : (
         byDay.map(([day, dayMatches]) => (
-          <section key={day}>
+          <section key={day} id={daySectionId(day)} className="match-day-section">
             <h3 className="text-sm font-semibold text-[var(--accent)] mb-3">
               {day}
             </h3>

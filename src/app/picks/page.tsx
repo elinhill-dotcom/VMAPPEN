@@ -22,6 +22,8 @@ import {
   countKnockoutFilled,
   isKnockoutComplete,
 } from "@/lib/knockout-picks";
+import { daySectionId } from "@/lib/match-day-scroll";
+import { useScrollToTodayMatchDay } from "@/hooks/useScrollToTodayMatchDay";
 import type { StoredPlayer } from "@/lib/player-storage";
 
 type PredMap = Record<number, { home: string; away: string }>;
@@ -142,6 +144,12 @@ export default function PicksPage() {
   const knockoutFilled = countKnockoutFilled(knockout);
   const groupDone = filledGroup >= matches.length && matches.length > 0;
   const knockoutDone = isKnockoutComplete(knockout);
+
+  useScrollToTodayMatchDay(
+    byDay,
+    tab === "group" && matchesLoaded && byDay.length > 0,
+    `${player?.id ?? ""}-${filter}-${tab}`,
+  );
 
   async function save() {
     if (!player) return;
@@ -359,7 +367,7 @@ export default function PicksPage() {
           )}
 
           {byDay.map(([day, dayMatches]) => (
-            <section key={day}>
+            <section key={day} id={daySectionId(day)} className="match-day-section match-day-section--picks">
               <h3 className="mb-3 text-sm font-semibold text-[var(--accent)]">
                 {day}
               </h3>

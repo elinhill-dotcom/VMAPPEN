@@ -424,6 +424,14 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
   border: 1px solid var(--border);
 }
 
+.match-day-section {
+  scroll-margin-top: 1rem;
+}
+
+.match-day-section--picks {
+  scroll-margin-bottom: 6rem;
+}
+
 .picks-page--has-save-bar {
   padding-bottom: 5.75rem;
 }
