@@ -5,15 +5,24 @@ function capFirst(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** Swedish calendar day label, e.g. "Söndag 15 juni". */
-export function formatSvDayLabel(iso: string): string {
-  const d = new Date(iso);
+/** Swedish calendar day label from a Date in CEST, e.g. "Söndag 15 juni". */
+export function formatSvDayLabelFromDate(d: Date): string {
   const weekday = capFirst(
     d.toLocaleDateString("sv-SE", { weekday: "long", timeZone: CEST }),
   );
   const day = d.toLocaleDateString("sv-SE", { day: "numeric", timeZone: CEST });
   const month = d.toLocaleDateString("sv-SE", { month: "long", timeZone: CEST });
   return `${weekday} ${day} ${month}`;
+}
+
+/** Swedish calendar day label, e.g. "Söndag 15 juni". */
+export function formatSvDayLabel(iso: string): string {
+  return formatSvDayLabelFromDate(new Date(iso));
+}
+
+/** Today's day label in Swedish (CEST), e.g. "Måndag 15 juni". */
+export function getTodaySvDayLabel(now = new Date()): string {
+  return formatSvDayLabelFromDate(now);
 }
 
 /** Date/time in CEST (Swedish). */

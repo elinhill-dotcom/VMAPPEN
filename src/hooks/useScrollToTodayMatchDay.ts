@@ -5,12 +5,22 @@ import { daySectionId, pickScrollDayKey } from "@/lib/match-day-scroll";
 
 type DayGroup = [string, { kickoffAt: string }[]];
 
+type ScrollOptions = {
+  /** Extra px subtracted from scroll position (e.g. fixed header). */
+  scrollOffset?: number;
+  /** Wait before scrolling so layout can settle. */
+  delayMs?: number;
+};
+
 export function useScrollToTodayMatchDay(
   byDay: DayGroup[],
   enabled: boolean,
   resetKey?: string,
+  options?: ScrollOptions,
 ) {
   const scrolledRef = useRef(false);
+  const scrollOffset = options?.scrollOffset ?? 0;
+  const delayMs = options?.delayMs ?? 80;
 
   useEffect(() => {
     scrolledRef.current = false;
@@ -26,10 +36,13 @@ export function useScrollToTodayMatchDay(
     const timer = window.setTimeout(() => {
       const el = document.getElementById(id);
       if (!el) return;
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      const top =
+        el.getBoundingClientRect().top + window.scrollY - scrollOffset;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
       scrolledRef.current = true;
-    }, 80);
+    }, delayMs);
 
     return () => window.clearTimeout(timer);
-  }, [byDay, enabled, resetKey]);
+  }, [byDay, enabled, resetKey, scrollOffset, delayMs]);
 }

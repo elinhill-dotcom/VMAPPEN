@@ -22,7 +22,7 @@ import {
   countKnockoutFilled,
   isKnockoutComplete,
 } from "@/lib/knockout-picks";
-import { daySectionId } from "@/lib/match-day-scroll";
+import { daySectionId, sortMatchDayGroups } from "@/lib/match-day-scroll";
 import { useScrollToTodayMatchDay } from "@/hooks/useScrollToTodayMatchDay";
 import type { StoredPlayer } from "@/lib/player-storage";
 
@@ -131,7 +131,7 @@ export default function PicksPage() {
       if (!groups[key]) groups[key] = [];
       groups[key].push(m);
     }
-    return Object.entries(groups);
+    return sortMatchDayGroups(Object.entries(groups));
   }, [filtered]);
 
   const filledGroup = useMemo(() => {

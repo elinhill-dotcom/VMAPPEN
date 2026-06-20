@@ -432,6 +432,10 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
   scroll-margin-bottom: 6rem;
 }
 
+.match-day-section--results {
+  scroll-margin-top: 0.5rem;
+}
+
 .picks-page--has-save-bar {
   padding-bottom: 5.75rem;
 }

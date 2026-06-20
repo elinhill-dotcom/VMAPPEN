@@ -8,7 +8,7 @@ import { MatchBettingSummary } from "@/components/MatchBettingSummary";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useScrollToTodayMatchDay } from "@/hooks/useScrollToTodayMatchDay";
-import { daySectionId } from "@/lib/match-day-scroll";
+import { daySectionId, sortMatchDayGroups } from "@/lib/match-day-scroll";
 
 type PredMap = Record<number, { home: string; away: string }>;
 
@@ -68,7 +68,7 @@ export default function ResultsPage() {
       if (!map[m.dayLabel]) map[m.dayLabel] = [];
       map[m.dayLabel].push(m);
     }
-    return Object.entries(map);
+    return sortMatchDayGroups(Object.entries(map));
   }, [shown]);
 
   const finishedCount = matches.filter((m) => m.finished).length;
@@ -77,6 +77,7 @@ export default function ResultsPage() {
     byDay,
     matches.length > 0 && byDay.length > 0,
     `${filter}-${group}`,
+    { delayMs: 150 },
   );
 
   return (
@@ -143,7 +144,7 @@ export default function ResultsPage() {
         <p className="text-[var(--muted)]">Inga matcher matchar filtret.</p>
       ) : (
         byDay.map(([day, dayMatches]) => (
-          <section key={day} id={daySectionId(day)} className="match-day-section">
+          <section key={day} id={daySectionId(day)} className="match-day-section match-day-section--results">
             <h3 className="text-sm font-semibold text-[var(--accent)] mb-3">
               {day}
             </h3>
