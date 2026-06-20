@@ -6,11 +6,14 @@ import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
 import { MatchBettingSummary } from "@/components/MatchBettingSummary";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
+import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
 import { useScrollToTodayMatchDay } from "@/hooks/useScrollToTodayMatchDay";
 import { daySectionId, sortMatchDayGroups } from "@/lib/match-day-scroll";
 
 type PredMap = Record<number, { home: string; away: string }>;
+
+const RESULTS_SCROLL_RETRIES = [300, 750, 1500, 2500];
 
 export default function ResultsPage() {
   const { player, hydrated } = usePlayerSession();
@@ -18,20 +21,27 @@ export default function ResultsPage() {
   const [preds, setPreds] = useState<PredMap>({});
   const [filter, setFilter] = useState<"all" | "finished" | "upcoming">("all");
   const [group, setGroup] = useState<string>("all");
-  const { map: bettingStatsMap, available: statsAvailable } =
+  const [matchesReady, setMatchesReady] = useState(false);
+  const [predsReady, setPredsReady] = useState(true);
+  const { loading: lockLoading, locked } = usePredictionsLocked();
+  const { map: bettingStatsMap, available: statsAvailable, loading: statsLoading } =
     useMatchBettingStatsMap();
 
   useEffect(() => {
+    setMatchesReady(false);
     fetch("/api/matches?stage=group")
       .then((r) => r.json())
-      .then((d) => setMatches(d.matches ?? []));
+      .then((d) => setMatches(d.matches ?? []))
+      .finally(() => setMatchesReady(true));
   }, []);
 
   useEffect(() => {
     if (!player) {
       setPreds({});
+      setPredsReady(true);
       return;
     }
+    setPredsReady(false);
     fetch(`/api/predictions?playerId=${player.id}`)
       .then((r) => r.json())
       .then((d) => {
@@ -43,7 +53,8 @@ export default function ResultsPage() {
           };
         }
         setPreds(map);
-      });
+      })
+      .finally(() => setPredsReady(true));
   }, [player]);
 
   const groups = useMemo(() => {
@@ -73,11 +84,28 @@ export default function ResultsPage() {
 
   const finishedCount = matches.filter((m) => m.finished).length;
 
+  const showBettingBlocks = locked && !!player;
+  const bettingLayoutReady =
+    !showBettingBlocks || statsAvailable || !statsLoading;
+
+  const scrollReady =
+    matchesReady &&
+    hydrated &&
+    predsReady &&
+    !lockLoading &&
+    bettingLayoutReady &&
+    matches.length > 0 &&
+    byDay.length > 0;
+
   useScrollToTodayMatchDay(
     byDay,
-    matches.length > 0 && byDay.length > 0,
-    `${filter}-${group}`,
-    { delayMs: 150 },
+    scrollReady,
+    `${filter}-${group}-${player?.id ?? "anon"}-${statsAvailable ? "stats" : "nostats"}`,
+    {
+      behavior: "auto",
+      retries: RESULTS_SCROLL_RETRIES,
+      stabilizeMs: 3500,
+    },
   );
 
   return (
@@ -144,8 +172,11 @@ export default function ResultsPage() {
         <p className="text-[var(--muted)]">Inga matcher matchar filtret.</p>
       ) : (
         byDay.map(([day, dayMatches]) => (
-          <section key={day} id={daySectionId(day)} className="match-day-section match-day-section--results">
-            <h3 className="text-sm font-semibold text-[var(--accent)] mb-3">
+          <section key={day} className="match-day-section match-day-section--results">
+            <h3
+              id={daySectionId(day)}
+              className="text-sm font-semibold text-[var(--accent)] mb-3 scroll-mt-4"
+            >
               {day}
             </h3>
             <div className="overflow-x-auto rounded-xl border border-[var(--border)]">

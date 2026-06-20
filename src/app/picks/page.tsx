@@ -367,8 +367,11 @@ export default function PicksPage() {
           )}
 
           {byDay.map(([day, dayMatches]) => (
-            <section key={day} id={daySectionId(day)} className="match-day-section match-day-section--picks">
-              <h3 className="mb-3 text-sm font-semibold text-[var(--accent)]">
+            <section key={day} className="match-day-section match-day-section--picks">
+              <h3
+                id={daySectionId(day)}
+                className="mb-3 text-sm font-semibold text-[var(--accent)] scroll-mt-4"
+              >
                 {day}
               </h3>
               <div className="space-y-3">
