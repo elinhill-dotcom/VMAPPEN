@@ -824,23 +824,24 @@ export async function loadChatMessages(
   since?: string,
 ): Promise<DbResult<ChatMessage[]>> {
   try {
-    let q = getAdminFirestore()
+    const snap = await getAdminFirestore()
       .collection(COLLECTIONS.chatMessages)
       .where("match_id", "==", matchId)
-      .orderBy("created_at")
-      .limit(since ? 100 : 150);
+      .get();
+
+    let rows = snap.docs
+      .map((doc) =>
+        mapChatMessage({ id: doc.id, ...doc.data() } as ChatMessageRow),
+      )
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 
     if (since) {
-      q = q.where("created_at", ">", since) as typeof q;
+      rows = rows.filter((m) => m.createdAt > since).slice(0, 100);
+    } else {
+      rows = rows.slice(-150);
     }
 
-    const snap = await q.get();
-    return {
-      data: snap.docs.map((doc) =>
-        mapChatMessage({ id: doc.id, ...doc.data() } as ChatMessageRow),
-      ),
-      error: null,
-    };
+    return { data: rows, error: null };
   } catch (e) {
     return { data: null, error: toErrorMessage(e) };
   }

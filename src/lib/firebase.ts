@@ -8,7 +8,6 @@ import {
   getFirestore,
   limit,
   onSnapshot,
-  orderBy,
   query,
   setDoc,
   where,
@@ -105,8 +104,7 @@ export function subscribeToMatchChatRoom(
   const messagesQuery = query(
     collection(db, CHAT_MESSAGES),
     where("match_id", "==", matchId),
-    orderBy("created_at", "asc"),
-    limit(150),
+    limit(200),
   );
 
   const presenceQuery = collection(
