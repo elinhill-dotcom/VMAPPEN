@@ -234,7 +234,7 @@ export function LiveChatRoom({ matchId }: Props) {
               href="/live"
               className="text-xs text-[var(--muted)] hover:text-white"
             >
-              ? Alla live-matcher
+              Tillbaka till alla livechattar
             </Link>
             {match && (
               <>
