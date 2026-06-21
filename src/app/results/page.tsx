@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
-import { MatchBettingSummary } from "@/components/MatchBettingSummary";
+import { ExpandableMatchBettingSummary } from "@/components/ExpandableMatchBettingSummary";
 import { useMatchBettingStatsMap } from "@/hooks/useMatchBettingStatsMap";
 import { usePredictionsLocked } from "@/hooks/usePredictionsLocked";
 import { usePlayerSession } from "@/hooks/usePlayerSession";
@@ -117,7 +117,7 @@ export default function ResultsPage() {
           {statsAvailable && player && (
             <>
               {" "}
-              Du ser dina egna tips bredvid familjestatistiken.
+              Klicka på Familjens tips för att se allas individuella tips.
             </>
           )}
           {statsAvailable && hydrated && !player && (
@@ -211,7 +211,7 @@ export default function ResultsPage() {
                           </p>
                           {showBettingBlock && (
                             <div className="mt-3 max-w-md">
-                              <MatchBettingSummary
+                              <ExpandableMatchBettingSummary
                                 stats={
                                   betting ?? {
                                     matchId: m.id,
@@ -228,7 +228,6 @@ export default function ResultsPage() {
                                     majorityOutcome: "draw" as const,
                                   }
                                 }
-                                compact
                                 userPick={userPick}
                                 match={m}
                               />

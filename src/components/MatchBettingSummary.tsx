@@ -67,6 +67,9 @@ type Props = {
   compact?: boolean;
   userPick?: UserPickProps | null;
   match?: MatchForPick;
+  onFamilyTipsClick?: () => void;
+  familyTipsOpen?: boolean;
+  hideFamilyStats?: boolean;
 };
 
 export function MatchBettingSummary({
@@ -74,6 +77,9 @@ export function MatchBettingSummary({
   compact = false,
   userPick,
   match,
+  onFamilyTipsClick,
+  familyTipsOpen = false,
+  hideFamilyStats = false,
 }: Props) {
   if (stats.tipCount === 0 && !userPick) return null;
 
@@ -119,9 +125,23 @@ export function MatchBettingSummary({
 
       {stats.tipCount > 0 && (
         <>
-      <p className="text-xs font-semibold text-[var(--muted)]">
-        Familjens tips ({stats.tipCount})
-      </p>
+      {onFamilyTipsClick ? (
+        <button
+          type="button"
+          onClick={onFamilyTipsClick}
+          className="text-xs font-semibold text-[var(--accent)] hover:underline text-left"
+          aria-expanded={familyTipsOpen}
+        >
+          Familjens tips ({stats.tipCount})
+          {familyTipsOpen ? " ↑" : " ↓"}
+        </button>
+      ) : (
+        <p className="text-xs font-semibold text-[var(--muted)]">
+          Familjens tips ({stats.tipCount})
+        </p>
+      )}
+      {!hideFamilyStats && (
+        <>
       <OutcomeBar
         homeTeam={stats.homeTeam}
         awayTeam={stats.awayTeam}
@@ -138,6 +158,8 @@ export function MatchBettingSummary({
             </>
           )}
         </p>
+      )}
+        </>
       )}
         </>
       )}

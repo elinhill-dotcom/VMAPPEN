@@ -14,6 +14,12 @@ import {
   type Firestore,
   type Unsubscribe,
 } from "firebase/firestore";
+import {
+  CHAT_PRESENCE_HEARTBEAT_MS,
+  filterActiveChatPresence,
+  type ChatPresenceStatus,
+  type ChatPresenceUser,
+} from "@/lib/chat-presence";
 import { mapChatMessage } from "@/lib/firestore-mappers";
 import type { ChatMessageRow } from "@/lib/firestore-types";
 
@@ -22,11 +28,13 @@ export type ChatMessage = ReturnType<typeof mapChatMessage>;
 const CHAT_MESSAGES = "chat_messages";
 const CHAT_PRESENCE = "chat_presence";
 
-export type ChatPresenceUser = {
-  key: string;
-  name: string;
-  playerId?: string | null;
-  at?: string;
+export type { ChatPresenceUser, ChatPresenceStatus } from "@/lib/chat-presence";
+
+export type ChatRoomHandlers = {
+  onInsert: (message: ChatMessage) => void;
+  onPresence: (users: ChatPresenceUser[]) => void;
+  onStatus?: (status: string) => void;
+  onPresenceStatus?: (status: ChatPresenceStatus) => void;
 };
 
 /** Firebase web config from environment (no auth). */
@@ -82,15 +90,23 @@ export type ChatRoomSubscription = {
   unsubscribe: () => void;
 };
 
+function mapPresenceDoc(
+  id: string,
+  data: Record<string, unknown>,
+): ChatPresenceUser {
+  return {
+    key: id,
+    name: (data.name as string) ?? "Anonym",
+    playerId: (data.player_id as string | null) ?? null,
+    at: data.at as string | undefined,
+  };
+}
+
 /** Live chat via Firestore onSnapshot (no auth). */
 export function subscribeToMatchChatRoom(
   matchId: number,
   presence: ChatPresenceUser,
-  handlers: {
-    onInsert: (message: ChatMessage) => void;
-    onPresence: (users: ChatPresenceUser[]) => void;
-    onStatus?: (status: string) => void;
-  },
+  handlers: ChatRoomHandlers,
 ): ChatRoomSubscription {
   const db = getClientFirestore();
   const presenceRef = doc(
@@ -115,6 +131,48 @@ export function subscribeToMatchChatRoom(
   );
 
   const seen = new Set<string>();
+  let heartbeatTimer: number | undefined;
+  let active = true;
+
+  const touchPresence = async () => {
+    if (!active) return;
+    try {
+      await setDoc(
+        presenceRef,
+        {
+          name: presence.name,
+          player_id: presence.playerId ?? null,
+          at: new Date().toISOString(),
+        },
+        { merge: true },
+      );
+      handlers.onPresenceStatus?.("ok");
+    } catch {
+      handlers.onPresenceStatus?.("error");
+    }
+  };
+
+  const emitPresence = (snap: { docs: { id: string; data: () => Record<string, unknown> }[] }) => {
+    const users = filterActiveChatPresence(
+      snap.docs.map((d) => mapPresenceDoc(d.id, d.data())),
+    );
+    users.sort((a, b) => a.name.localeCompare(b.name, "sv"));
+    handlers.onPresence(users);
+  };
+
+  handlers.onPresenceStatus?.("pending");
+  void touchPresence();
+
+  heartbeatTimer = window.setInterval(() => {
+    void touchPresence();
+  }, CHAT_PRESENCE_HEARTBEAT_MS);
+
+  const onVisible = () => {
+    if (document.visibilityState === "visible") {
+      void touchPresence();
+    }
+  };
+  document.addEventListener("visibilitychange", onVisible);
 
   const unsubMessages: Unsubscribe = onSnapshot(
     messagesQuery,
@@ -131,28 +189,19 @@ export function subscribeToMatchChatRoom(
     () => handlers.onStatus?.("CHANNEL_ERROR"),
   );
 
-  const unsubPresence = onSnapshot(presenceQuery, (snap) => {
-    const users: ChatPresenceUser[] = snap.docs.map((d) => {
-      const data = d.data();
-      return {
-        key: d.id,
-        name: (data.name as string) ?? "Anonym",
-        playerId: (data.player_id as string | null) ?? null,
-        at: data.at as string | undefined,
-      };
-    });
-    users.sort((a, b) => a.name.localeCompare(b.name, "sv"));
-    handlers.onPresence(users);
-  });
-
-  void setDoc(presenceRef, {
-    name: presence.name,
-    player_id: presence.playerId ?? null,
-    at: new Date().toISOString(),
-  });
+  const unsubPresence = onSnapshot(
+    presenceQuery,
+    (snap) => emitPresence(snap),
+    () => handlers.onPresenceStatus?.("error"),
+  );
 
   return {
     unsubscribe: () => {
+      active = false;
+      if (heartbeatTimer !== undefined) {
+        window.clearInterval(heartbeatTimer);
+      }
+      document.removeEventListener("visibilitychange", onVisible);
       unsubMessages();
       unsubPresence();
       void deleteDoc(presenceRef);
@@ -195,3 +244,10 @@ export async function sendChatMessage(
     return { data: null, error: msg };
   }
 }
+
+export {
+  CHAT_PRESENCE_HEARTBEAT_MS,
+  CHAT_PRESENCE_TTL_MS,
+  filterActiveChatPresence,
+  isActiveChatPresence,
+} from "@/lib/chat-presence";

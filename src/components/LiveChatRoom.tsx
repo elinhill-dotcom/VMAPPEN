@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   clearChatDisplayName,
   getChatDisplayName,
@@ -18,7 +18,9 @@ import {
   sendChatMessage,
   subscribeToMatchChatRoom,
   unsubscribeChat,
+  filterActiveChatPresence,
   type ChatMessage,
+  type ChatPresenceStatus,
   type ChatPresenceUser,
   isFirebaseConfigured,
 } from "@/lib/firebase";
@@ -46,7 +48,10 @@ export function LiveChatRoom({ matchId }: Props) {
   const [match, setMatch] = useState<MatchInfo | null>(null);
   const [live, setLive] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [present, setPresent] = useState<ChatPresenceUser[]>([]);
+  const [presentRaw, setPresentRaw] = useState<ChatPresenceUser[]>([]);
+  const [presenceTick, setPresenceTick] = useState(0);
+  const [presenceStatus, setPresenceStatus] =
+    useState<ChatPresenceStatus>("pending");
   const [text, setText] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -114,7 +119,7 @@ export function LiveChatRoom({ matchId }: Props) {
 
     const player = playerRef.current;
     const presence: ChatPresenceUser = {
-      key: `${player?.id ?? displayName}:${sessionKeyRef.current}`,
+      key: sessionKeyRef.current,
       name: displayName,
       playerId: player?.id ?? null,
       at: new Date().toISOString(),
@@ -122,12 +127,20 @@ export function LiveChatRoom({ matchId }: Props) {
 
     const sub = subscribeToMatchChatRoom(matchId, presence, {
       onInsert: (message) => appendMessage(message),
-      onPresence: (users) => setPresent(users),
+      onPresence: (users) => setPresentRaw(users),
       onStatus: (status) => setConnectionStatus(status),
+      onPresenceStatus: (status) => setPresenceStatus(status),
     });
 
     return () => unsubscribeChat(sub);
   }, [displayName, hydrated, matchId, configured, loadRoom, appendMessage]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setPresenceTick((t) => t + 1);
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (adminTestMode) return;
@@ -171,6 +184,12 @@ export function LiveChatRoom({ matchId }: Props) {
     setText("");
     appendMessage(res.data);
   }
+
+  const present = useMemo(
+    () => filterActiveChatPresence(presentRaw),
+    [presentRaw, presenceTick],
+  );
+  const visibleInRoom = present.some((u) => u.key === sessionKeyRef.current);
 
   if (!hydrated) {
     return <p className="text-[var(--muted)]">Laddar?</p>;
@@ -268,13 +287,30 @@ export function LiveChatRoom({ matchId }: Props) {
             <span className="text-xs text-[var(--muted)]">
               Chattar som <strong className="text-white">{displayName}</strong>
             </span>
-            {connectionStatus === "SUBSCRIBED" && (
-              <span className="text-xs text-green-400">Ansluten</span>
+            {connectionStatus === "SUBSCRIBED" && presenceStatus === "ok" && visibleInRoom && (
+              <span className="text-xs text-green-400">
+                Ansluten · synlig i rummet
+              </span>
+            )}
+            {connectionStatus === "SUBSCRIBED" &&
+              presenceStatus === "ok" &&
+              !visibleInRoom && (
+                <span className="text-xs text-amber-300">
+                  Ansluten · registrerar närvaro…
+                </span>
+              )}
+            {connectionStatus === "SUBSCRIBED" && presenceStatus === "pending" && (
+              <span className="text-xs text-amber-300">Registrerar närvaro…</span>
+            )}
+            {presenceStatus === "error" && (
+              <span className="text-xs text-[var(--danger)]">
+                Närvaron kunde inte registreras
+              </span>
             )}
             {connectionStatus && connectionStatus !== "SUBSCRIBED" && (
               <span className="text-xs text-[var(--muted)]">
                 {connectionStatus === "CHANNEL_ERROR"
-                  ? "Återansluter?"
+                  ? "Återansluter…"
                   : connectionStatus}
               </span>
             )}
