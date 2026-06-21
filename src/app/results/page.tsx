@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
@@ -179,89 +179,83 @@ export default function ResultsPage() {
             >
               {day}
             </h3>
-            <div className="overflow-x-auto rounded-xl border border-[var(--border)]">
-              <table className="w-full text-sm">
-                <thead className="bg-[var(--card)] text-left text-[var(--muted)]">
-                  <tr>
-                    <th className="px-4 py-3">Match</th>
-                    <th className="px-4 py-3 text-center">Resultat</th>
-                    <th className="px-4 py-3">Utfall</th>
-                    <th className="px-4 py-3 hidden sm:table-cell">Grupp</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dayMatches.map((m) => {
-                    const betting = bettingStatsMap.get(m.id);
-                    const userPick = player
-                      ? (preds[m.id] ?? { home: "", away: "" })
-                      : undefined;
-                    const showBettingBlock =
-                      statsAvailable && (!!betting || !!player);
-                    return (
-                      <Fragment key={m.id}>
-                        <tr className="border-t border-[var(--border)]">
-                          <td className="px-4 py-3">
-                            <p className="font-medium">
-                              {m.homeTeam} – {m.awayTeam}
-                            </p>
-                            <p className="text-xs text-[var(--muted)]">
-                              {formatCestMatchKickoff(m.kickoffAt)}
-                            </p>
-                          </td>
-                          <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
-                            {m.finished &&
-                            m.homeScore !== null &&
-                            m.awayScore !== null
-                              ? `${m.homeScore}–${m.awayScore}`
-                              : "—"}
-                          </td>
-                          <td className="px-4 py-3 text-[var(--muted)]">
-                            {m.finished &&
-                            m.homeScore !== null &&
-                            m.awayScore !== null
-                              ? winnerLabel(
-                                  m.homeScore,
-                                  m.awayScore,
-                                  m.homeTeam,
-                                  m.awayTeam,
-                                )
-                              : "Väntar"}
-                          </td>
-                          <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
-                            {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
-                          </td>
-                        </tr>
-                        {showBettingBlock && (
-                          <tr className="border-t border-[var(--border)] bg-[var(--card)]/25">
-                            <td colSpan={4} className="px-4 py-3">
-                              <ExpandableMatchBettingSummary
-                                stats={
-                                  betting ?? {
-                                    matchId: m.id,
-                                    homeTeam: m.homeTeam,
-                                    awayTeam: m.awayTeam,
-                                    dayLabel: m.dayLabel,
-                                    kickoffAt: m.kickoffAt,
-                                    groupCode: m.groupCode,
-                                    tipCount: 0,
-                                    outcomes: { home: 0, draw: 0, away: 0 },
-                                    topScores: [],
-                                    avgHome: 0,
-                                    avgAway: 0,
-                                    majorityOutcome: "draw" as const,
-                                  }
-                                }
-                                userPick={userPick}
-                                match={m}
-                              />
-                            </td>
-                          </tr>
-                        )}
-                      </Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="results-match-list">
+              <div className="results-match-list__head">
+                <span>Match</span>
+                <span>Resultat</span>
+                <span>Utfall</span>
+                <span>Grupp</span>
+              </div>
+              {dayMatches.map((m) => {
+                const betting = bettingStatsMap.get(m.id);
+                const userPick = player
+                  ? (preds[m.id] ?? { home: "", away: "" })
+                  : undefined;
+                const showBettingBlock =
+                  statsAvailable && (!!betting || !!player);
+                return (
+                  <article key={m.id} className="results-match-item">
+                    <div className="results-match-list__row">
+                      <div>
+                        <p className="font-medium">
+                          {m.homeTeam} – {m.awayTeam}
+                        </p>
+                        <p className="text-xs text-[var(--muted)]">
+                          {formatCestMatchKickoff(m.kickoffAt)}
+                        </p>
+                      </div>
+                      <p className="text-center font-bold text-[var(--accent)]">
+                        {m.finished &&
+                        m.homeScore !== null &&
+                        m.awayScore !== null
+                          ? `${m.homeScore}–${m.awayScore}`
+                          : "—"}
+                      </p>
+                      <p className="text-[var(--muted)]">
+                        {m.finished &&
+                        m.homeScore !== null &&
+                        m.awayScore !== null
+                          ? winnerLabel(
+                              m.homeScore,
+                              m.awayScore,
+                              m.homeTeam,
+                              m.awayTeam,
+                            )
+                          : "Väntar"}
+                      </p>
+                      <p className="text-[var(--muted)]">
+                        {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
+                      </p>
+                    </div>
+                    {showBettingBlock && (
+                      <div className="results-match-item__tips">
+                        <div className="results-match-item__tips-inner">
+                          <ExpandableMatchBettingSummary
+                            stats={
+                              betting ?? {
+                                matchId: m.id,
+                                homeTeam: m.homeTeam,
+                                awayTeam: m.awayTeam,
+                                dayLabel: m.dayLabel,
+                                kickoffAt: m.kickoffAt,
+                                groupCode: m.groupCode,
+                                tipCount: 0,
+                                outcomes: { home: 0, draw: 0, away: 0 },
+                                topScores: [],
+                                avgHome: 0,
+                                avgAway: 0,
+                                majorityOutcome: "draw" as const,
+                              }
+                            }
+                            userPick={userPick}
+                            match={m}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
             </div>
           </section>
         ))
