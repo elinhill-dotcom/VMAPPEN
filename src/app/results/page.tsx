@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { formatCestMatchKickoff } from "@/lib/datetime";
 import { winnerLabel } from "@/lib/pick-feedback";
 import type { MatchView } from "@/components/MatchCard";
@@ -198,19 +198,42 @@ export default function ResultsPage() {
                     const showBettingBlock =
                       statsAvailable && (!!betting || !!player);
                     return (
-                      <tr
-                        key={m.id}
-                        className="border-t border-[var(--border)]"
-                      >
-                        <td className="px-4 py-3">
-                          <p className="font-medium">
-                            {m.homeTeam} – {m.awayTeam}
-                          </p>
-                          <p className="text-xs text-[var(--muted)]">
-                            {formatCestMatchKickoff(m.kickoffAt)}
-                          </p>
-                          {showBettingBlock && (
-                            <div className="mt-3 max-w-md">
+                      <Fragment key={m.id}>
+                        <tr className="border-t border-[var(--border)]">
+                          <td className="px-4 py-3">
+                            <p className="font-medium">
+                              {m.homeTeam} – {m.awayTeam}
+                            </p>
+                            <p className="text-xs text-[var(--muted)]">
+                              {formatCestMatchKickoff(m.kickoffAt)}
+                            </p>
+                          </td>
+                          <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
+                            {m.finished &&
+                            m.homeScore !== null &&
+                            m.awayScore !== null
+                              ? `${m.homeScore}–${m.awayScore}`
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3 text-[var(--muted)]">
+                            {m.finished &&
+                            m.homeScore !== null &&
+                            m.awayScore !== null
+                              ? winnerLabel(
+                                  m.homeScore,
+                                  m.awayScore,
+                                  m.homeTeam,
+                                  m.awayTeam,
+                                )
+                              : "Väntar"}
+                          </td>
+                          <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
+                            {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
+                          </td>
+                        </tr>
+                        {showBettingBlock && (
+                          <tr className="border-t border-[var(--border)] bg-[var(--card)]/25">
+                            <td colSpan={4} className="px-4 py-3">
                               <ExpandableMatchBettingSummary
                                 stats={
                                   betting ?? {
@@ -231,32 +254,10 @@ export default function ResultsPage() {
                                 userPick={userPick}
                                 match={m}
                               />
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-center font-bold text-[var(--accent)]">
-                          {m.finished &&
-                          m.homeScore !== null &&
-                          m.awayScore !== null
-                            ? `${m.homeScore}–${m.awayScore}`
-                            : "—"}
-                        </td>
-                        <td className="px-4 py-3 text-[var(--muted)]">
-                          {m.finished &&
-                          m.homeScore !== null &&
-                          m.awayScore !== null
-                            ? winnerLabel(
-                                m.homeScore,
-                                m.awayScore,
-                                m.homeTeam,
-                                m.awayTeam,
-                              )
-                            : "Väntar"}
-                        </td>
-                        <td className="px-4 py-3 hidden sm:table-cell text-[var(--muted)]">
-                          {m.groupCode ? `Grupp ${m.groupCode}` : "—"}
-                        </td>
-                      </tr>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
                     );
                   })}
                 </tbody>
