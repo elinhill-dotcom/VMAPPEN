@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "db:seed": "tsx scripts/seed-firestore.ts"
+    "db:seed": "tsx scripts/seed-firestore.ts",
+    "db:patch-r16": "tsx scripts/patch-r16-teams.ts"
   },
   "dependencies": {
     "firebase": "^11.6.0",

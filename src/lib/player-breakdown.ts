@@ -1,6 +1,8 @@
+import { breakdownKnockoutPick } from "@/lib/knockout-scoring";
 import {
-  breakdownKnockoutPick,
-} from "@/lib/knockout-scoring";
+  knockoutAnswerHasProgress,
+  knockoutAnswerIsComplete,
+} from "@/lib/knockout-potential";
 import {
   mapKnockoutAnswer,
   mapKnockoutPick,
@@ -122,8 +124,27 @@ export async function computePlayerBreakdown(
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answer =
-      mappedAnswer?.set && mappedAnswer.champion ? mappedAnswer : null;
+    const answerData = mappedAnswer
+      ? {
+          sf1Home: mappedAnswer.sf1Home,
+          sf1Away: mappedAnswer.sf1Away,
+          sf2Home: mappedAnswer.sf2Home,
+          sf2Away: mappedAnswer.sf2Away,
+          finalHome: mappedAnswer.finalHome,
+          finalAway: mappedAnswer.finalAway,
+          bronzeHome: mappedAnswer.bronzeHome,
+          bronzeAway: mappedAnswer.bronzeAway,
+          champion: mappedAnswer.champion,
+        }
+      : null;
+    const answerComplete =
+      !!mappedAnswer?.set &&
+      !!answerData &&
+      knockoutAnswerIsComplete(answerData);
+    const answerForScoring =
+      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
+        ? answerData
+        : null;
 
     let knockout: PlayerBreakdown["knockout"] = {
       scored: false,
@@ -131,12 +152,25 @@ export async function computePlayerBreakdown(
       totalPoints: 0,
     };
 
-    if (answer && koPickDoc.exists) {
+    if (answerForScoring && koPickDoc.exists) {
       const pick = mapKnockoutPick({
         id: koPickDoc.id,
         ...koPickDoc.data(),
       } as KnockoutPickRow);
-      const slots = breakdownKnockoutPick(pick, answer).map((s) => ({
+      const slots = breakdownKnockoutPick(
+        {
+          sf1Home: pick.sf1Home || null,
+          sf1Away: pick.sf1Away || null,
+          sf2Home: pick.sf2Home || null,
+          sf2Away: pick.sf2Away || null,
+          finalHome: pick.finalHome || null,
+          finalAway: pick.finalAway || null,
+          bronzeHome: pick.bronzeHome || null,
+          bronzeAway: pick.bronzeAway || null,
+          champion: pick.champion || null,
+        },
+        answerForScoring,
+      ).map((s) => ({
         ...s,
         picked: s.picked ? toSwedishTeam(s.picked) : null,
       }));
@@ -150,7 +184,11 @@ export async function computePlayerBreakdown(
     const allMatches = matchesSnap.docs.map((doc) =>
       mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
     );
-    const tournament = getTournamentStatus(allMatches, !!answer);
+    const tournament = getTournamentStatus(
+      allMatches,
+      answerComplete,
+      !!answerForScoring,
+    );
 
     return {
       data: {

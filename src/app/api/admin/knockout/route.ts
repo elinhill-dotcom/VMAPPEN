@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: saveRes.error }, { status: 500 });
   }
 
-  invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats);
+  invalidateApiCache(CACHE_KEYS.leaderboard, CACHE_KEYS.stats, "knockout-overview");
 
   const loadRes = await loadKnockoutAnswer();
   return NextResponse.json({ answer: loadRes.data });

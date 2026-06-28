@@ -494,6 +494,195 @@ button.rounded-lg.bg-\[var\(--accent\)\]:active:not(:disabled) {
   border-top: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
 }
 
+.knockout-bracket__tree {
+  display: flex;
+  gap: 0;
+  overflow-x: auto;
+  padding-bottom: 1rem;
+  align-items: stretch;
+  min-height: 28rem;
+}
+
+.knockout-bracket__side {
+  display: flex;
+  gap: 0.625rem;
+  flex: 0 0 auto;
+}
+
+.knockout-bracket__side--right {
+  flex-direction: row-reverse;
+}
+
+.knockout-bracket__round {
+  display: flex;
+  flex-direction: column;
+  min-width: 8.75rem;
+}
+
+.knockout-bracket__round-label {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  padding: 0.25rem 0 0.5rem;
+  flex-shrink: 0;
+}
+
+.knockout-bracket__round-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: 0.5rem;
+  position: relative;
+}
+
+.knockout-bracket__round-body--r16 {
+  gap: 0.75rem;
+}
+
+.knockout-bracket__pair {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  position: relative;
+  padding-right: 0.5rem;
+}
+
+.knockout-bracket__side--left .knockout-bracket__pair::after,
+.knockout-bracket__side--left
+  .knockout-bracket__round-body:not(.knockout-bracket__round-body--r16)
+  .knockout-bracket__match::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 0.5rem;
+  height: 1px;
+  background: color-mix(in srgb, var(--border) 90%, transparent);
+}
+
+.knockout-bracket__side--right .knockout-bracket__pair {
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+.knockout-bracket__center {
+  flex: 0 0 auto;
+  min-width: 9.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  padding: 0 0.75rem;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+.knockout-bracket__final {
+  position: relative;
+}
+
+.knockout-bracket__trophy {
+  display: block;
+  text-align: center;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.knockout-bracket__match {
+  border-radius: 0.5rem;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--card) 92%, transparent);
+  overflow: hidden;
+  font-size: 0.72rem;
+  min-width: 8.25rem;
+}
+
+.knockout-bracket__team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+  padding: 0.3rem 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.knockout-bracket__team-row:last-of-type {
+  border-bottom: none;
+}
+
+.knockout-bracket__team-row--winner {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  font-weight: 700;
+}
+
+.knockout-bracket__team-row--pending {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.knockout-bracket__team-row--pending .knockout-bracket__team-name {
+  white-space: normal;
+  line-height: 1.2;
+  font-size: 0.65rem;
+}
+
+.knockout-bracket__team-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knockout-bracket__team-score {
+  font-weight: 700;
+  color: var(--accent);
+  min-width: 1rem;
+  text-align: right;
+}
+
+.knockout-bracket__meta {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.58rem;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+}
+
+.slutspel-shell {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .slutspel-shell {
+    margin-left: min(0px, calc((48rem - 100vw) / 2 + 1rem));
+    margin-right: min(0px, calc((48rem - 100vw) / 2 + 1rem));
+    width: calc(100vw - 2rem);
+    max-width: 72rem;
+  }
+}
+
+.slutspel-page {
+  max-width: none;
+}
+
+.slutspel-page .knockout-bracket__tree {
+  min-height: 32rem;
+}
+
+@media (min-width: 900px) {
+  .knockout-bracket__match {
+    min-width: 9.5rem;
+  }
+
+  .knockout-bracket__round {
+    min-width: 10rem;
+  }
+}
+
 .picks-page--has-save-bar {
   padding-bottom: 5.75rem;
 }

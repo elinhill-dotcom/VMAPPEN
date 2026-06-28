@@ -43,7 +43,8 @@ export type TournamentStatus = {
 
 export function getTournamentStatus(
   matches: MatchView[],
-  knockoutScored: boolean,
+  knockoutComplete: boolean,
+  knockoutScoringStarted: boolean = knockoutComplete,
 ): TournamentStatus {
   const groupMatches = matches.filter((m) => m.stage === "group");
   const groupFinished = groupMatches.filter(
@@ -54,8 +55,13 @@ export function getTournamentStatus(
   const complete =
     groupTotal > 0 &&
     groupFinished === groupTotal &&
-    knockoutScored;
-  return { groupFinished, groupTotal, knockoutScored, complete };
+    knockoutComplete;
+  return {
+    groupFinished,
+    groupTotal,
+    knockoutScored: knockoutScoringStarted,
+    complete,
+  };
 }
 
 export function formatPointsSummary(entry: LeaderboardEntry): string {

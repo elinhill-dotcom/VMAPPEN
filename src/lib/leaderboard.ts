@@ -1,5 +1,10 @@
 import { JAR_CONTRIBUTION_EUR } from "@/lib/matches-data";
-import { scoreKnockoutPick, breakdownKnockoutPick } from "@/lib/knockout-scoring";
+import { breakdownKnockoutPick } from "@/lib/knockout-scoring";
+import {
+  knockoutAnswerHasProgress,
+  knockoutAnswerIsComplete,
+  scoreKnockoutPickIncremental,
+} from "@/lib/knockout-potential";
 import {
   formatWinnerExplanation,
   getTournamentStatus,
@@ -22,7 +27,9 @@ import type {
 } from "@/lib/firestore-types";
 import { getAdminFirestore, toErrorMessage, type DbResult } from "@/lib/firestore";
 
-export type { LeaderboardEntry } from "@/lib/leaderboard-types";export async function computeLeaderboard(): Promise<
+export type { LeaderboardEntry } from "@/lib/leaderboard-types";
+
+export async function computeLeaderboard(): Promise<
   DbResult<LeaderboardEntry[]>
 > {
   try {
@@ -64,8 +71,23 @@ export type { LeaderboardEntry } from "@/lib/leaderboard-types";export async fun
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answer =
-      mappedAnswer?.set && mappedAnswer.champion ? mappedAnswer : null;
+    const answerData = mappedAnswer
+      ? {
+          sf1Home: mappedAnswer.sf1Home,
+          sf1Away: mappedAnswer.sf1Away,
+          sf2Home: mappedAnswer.sf2Home,
+          sf2Away: mappedAnswer.sf2Away,
+          finalHome: mappedAnswer.finalHome,
+          finalAway: mappedAnswer.finalAway,
+          bronzeHome: mappedAnswer.bronzeHome,
+          bronzeAway: mappedAnswer.bronzeAway,
+          champion: mappedAnswer.champion,
+        }
+      : null;
+    const answerForScoring =
+      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
+        ? answerData
+        : null;
 
     const entries: LeaderboardEntry[] = playersSnap.docs.map((doc) => {
       const row = { id: doc.id, ...doc.data() } as PlayerRow;
@@ -94,8 +116,21 @@ export type { LeaderboardEntry } from "@/lib/leaderboard-types";export async fun
 
       let knockoutPoints = 0;
       const ko = koByPlayer.get(row.id);
-      if (answer && ko) {
-        knockoutPoints = scoreKnockoutPick(ko, answer);
+      if (answerForScoring && ko) {
+        knockoutPoints = scoreKnockoutPickIncremental(
+          {
+            sf1Home: ko.sf1Home || null,
+            sf1Away: ko.sf1Away || null,
+            sf2Home: ko.sf2Home || null,
+            sf2Away: ko.sf2Away || null,
+            finalHome: ko.finalHome || null,
+            finalAway: ko.finalAway || null,
+            bronzeHome: ko.bronzeHome || null,
+            bronzeAway: ko.bronzeAway || null,
+            champion: ko.champion || null,
+          },
+          answerForScoring,
+        );
       }
 
       return {
@@ -167,10 +202,33 @@ export async function getLeaderboardPayload(): Promise<
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answer =
-      mappedAnswer?.set && mappedAnswer.champion ? mappedAnswer : null;
+    const answerData = mappedAnswer
+      ? {
+          sf1Home: mappedAnswer.sf1Home,
+          sf1Away: mappedAnswer.sf1Away,
+          sf2Home: mappedAnswer.sf2Home,
+          sf2Away: mappedAnswer.sf2Away,
+          finalHome: mappedAnswer.finalHome,
+          finalAway: mappedAnswer.finalAway,
+          bronzeHome: mappedAnswer.bronzeHome,
+          bronzeAway: mappedAnswer.bronzeAway,
+          champion: mappedAnswer.champion,
+        }
+      : null;
+    const answerComplete =
+      !!mappedAnswer?.set &&
+      !!answerData &&
+      knockoutAnswerIsComplete(answerData);
+    const answerForScoring =
+      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
+        ? answerData
+        : null;
 
-    tournament = getTournamentStatus(matches, !!answer);
+    tournament = getTournamentStatus(
+      matches,
+      answerComplete,
+      !!answerForScoring,
+    );
 
     if (tournament.complete && res.data.length > 0) {
       const top = res.data[0]!;
@@ -178,12 +236,25 @@ export async function getLeaderboardPayload(): Promise<
       let knockoutSlots: ReturnType<typeof breakdownKnockoutPick> = [];
 
       const koDoc = koPicksSnap.docs.find((d) => d.id === top.playerId);
-      if (answer && koDoc) {
+      if (answerForScoring && koDoc) {
         const pick = mapKnockoutPick({
           id: koDoc.id,
           ...koDoc.data(),
         } as KnockoutPickRow);
-        knockoutSlots = breakdownKnockoutPick(pick, answer);
+        knockoutSlots = breakdownKnockoutPick(
+          {
+            sf1Home: pick.sf1Home || null,
+            sf1Away: pick.sf1Away || null,
+            sf2Home: pick.sf2Home || null,
+            sf2Away: pick.sf2Away || null,
+            finalHome: pick.finalHome || null,
+            finalAway: pick.finalAway || null,
+            bronzeHome: pick.bronzeHome || null,
+            bronzeAway: pick.bronzeAway || null,
+            champion: pick.champion || null,
+          },
+          answerForScoring,
+        );
       }
 
       winner = {

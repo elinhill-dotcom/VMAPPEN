@@ -10,6 +10,7 @@ const baseLinks = [
   { href: "/picks", label: "Mina tips" },
   { href: "/scoreboard", label: "Topplista" },
   { href: "/results", label: "Resultat" },
+  { href: "/slutspel", label: "Slutspel" },
   { href: "/live", label: "Livechatt" },
 ];
 
@@ -55,7 +56,9 @@ export function Nav() {
                 ? pathname.startsWith("/scoreboard")
                 : l.href === "/stats"
                   ? pathname.startsWith("/stats")
-                  : pathname === l.href;
+                  : l.href === "/slutspel"
+                    ? pathname.startsWith("/slutspel")
+                    : pathname === l.href;
           const isLiveLink = l.href === "/live";
           const showDot = isLiveLink && liveCount > 0;
 

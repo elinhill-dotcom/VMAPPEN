@@ -68,19 +68,22 @@ export function breakdownKnockoutPick(
   pick: KnockoutPickData,
   answer: KnockoutPickData,
 ): KnockoutSlotBreakdown[] {
-  if (!answer.champion) return [];
+  return KNOCKOUT_SLOT_DEFS.flatMap(({ key, label, category, actualTeams }) => {
+    const actual = actualTeams(answer);
+    if (actual.length === 0) return [];
 
-  return KNOCKOUT_SLOT_DEFS.map(({ key, label, category, actualTeams }) => {
     const picked = pick[key] ?? null;
-    const actual = new Set(actualTeams(answer));
-    const hit = !!picked && actual.has(picked);
-    return {
-      key,
-      label,
-      picked,
-      hit,
-      category,
-      points: hit ? KNOCKOUT_POINTS[category] : 0,
-    };
+    const actualSet = new Set(actual);
+    const hit = !!picked && actualSet.has(picked);
+    return [
+      {
+        key,
+        label,
+        picked,
+        hit,
+        category,
+        points: hit ? KNOCKOUT_POINTS[category] : 0,
+      },
+    ];
   });
 }
