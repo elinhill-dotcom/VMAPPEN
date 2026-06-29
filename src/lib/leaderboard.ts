@@ -5,6 +5,7 @@ import {
   knockoutAnswerIsComplete,
   scoreKnockoutPickIncremental,
 } from "@/lib/knockout-potential";
+import { getEffectiveKnockoutAnswer } from "@/lib/knockout-derive-answer";
 import {
   formatWinnerExplanation,
   getTournamentStatus,
@@ -67,11 +68,14 @@ export async function computeLeaderboard(): Promise<
       );
     }
 
+    const allMatches = [...matchMap.values()];
+    const knockoutMatches = allMatches.filter((m) => m.stage !== "group");
+
     const answerRow = koAnswerDoc.exists
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answerData = mappedAnswer
+    const manualAnswer = mappedAnswer
       ? {
           sf1Home: mappedAnswer.sf1Home,
           sf1Away: mappedAnswer.sf1Away,
@@ -84,10 +88,14 @@ export async function computeLeaderboard(): Promise<
           champion: mappedAnswer.champion,
         }
       : null;
-    const answerForScoring =
-      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
-        ? answerData
-        : null;
+    const effectiveAnswer = getEffectiveKnockoutAnswer(
+      manualAnswer,
+      !!mappedAnswer?.set,
+      knockoutMatches,
+    );
+    const answerForScoring = knockoutAnswerHasProgress(effectiveAnswer)
+      ? effectiveAnswer
+      : null;
 
     const entries: LeaderboardEntry[] = playersSnap.docs.map((doc) => {
       const row = { id: doc.id, ...doc.data() } as PlayerRow;
@@ -130,6 +138,7 @@ export async function computeLeaderboard(): Promise<
             champion: ko.champion || null,
           },
           answerForScoring,
+          knockoutMatches,
         );
       }
 
@@ -197,12 +206,13 @@ export async function getLeaderboardPayload(): Promise<
     const matches = matchesSnap.docs.map((doc) =>
       mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
     );
+    const knockoutMatches = matches.filter((m) => m.stage !== "group");
 
     const answerRow = koAnswerDoc.exists
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answerData = mappedAnswer
+    const manualAnswer = mappedAnswer
       ? {
           sf1Home: mappedAnswer.sf1Home,
           sf1Away: mappedAnswer.sf1Away,
@@ -215,14 +225,15 @@ export async function getLeaderboardPayload(): Promise<
           champion: mappedAnswer.champion,
         }
       : null;
-    const answerComplete =
-      !!mappedAnswer?.set &&
-      !!answerData &&
-      knockoutAnswerIsComplete(answerData);
-    const answerForScoring =
-      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
-        ? answerData
-        : null;
+    const effectiveAnswer = getEffectiveKnockoutAnswer(
+      manualAnswer,
+      !!mappedAnswer?.set,
+      knockoutMatches,
+    );
+    const answerComplete = knockoutAnswerIsComplete(effectiveAnswer);
+    const answerForScoring = knockoutAnswerHasProgress(effectiveAnswer)
+      ? effectiveAnswer
+      : null;
 
     tournament = getTournamentStatus(
       matches,

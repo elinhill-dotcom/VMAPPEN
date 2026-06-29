@@ -3,6 +3,7 @@ import {
   knockoutAnswerHasProgress,
   knockoutAnswerIsComplete,
 } from "@/lib/knockout-potential";
+import { getEffectiveKnockoutAnswer } from "@/lib/knockout-derive-answer";
 import {
   mapKnockoutAnswer,
   mapKnockoutPick,
@@ -120,11 +121,16 @@ export async function computePlayerBreakdown(
       };
     });
 
+    const allMatches = matchesSnap.docs.map((doc) =>
+      mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
+    );
+    const knockoutMatches = allMatches.filter((m) => m.stage !== "group");
+
     const answerRow = koAnswerDoc.exists
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answerData = mappedAnswer
+    const manualAnswer = mappedAnswer
       ? {
           sf1Home: mappedAnswer.sf1Home,
           sf1Away: mappedAnswer.sf1Away,
@@ -137,14 +143,15 @@ export async function computePlayerBreakdown(
           champion: mappedAnswer.champion,
         }
       : null;
-    const answerComplete =
-      !!mappedAnswer?.set &&
-      !!answerData &&
-      knockoutAnswerIsComplete(answerData);
-    const answerForScoring =
-      mappedAnswer?.set && answerData && knockoutAnswerHasProgress(answerData)
-        ? answerData
-        : null;
+    const effectiveAnswer = getEffectiveKnockoutAnswer(
+      manualAnswer,
+      !!mappedAnswer?.set,
+      knockoutMatches,
+    );
+    const answerComplete = knockoutAnswerIsComplete(effectiveAnswer);
+    const answerForScoring = knockoutAnswerHasProgress(effectiveAnswer)
+      ? effectiveAnswer
+      : null;
 
     let knockout: PlayerBreakdown["knockout"] = {
       scored: false,
@@ -181,9 +188,6 @@ export async function computePlayerBreakdown(
       };
     }
 
-    const allMatches = matchesSnap.docs.map((doc) =>
-      mapMatch({ id: Number(doc.id), ...doc.data() } as MatchRow),
-    );
     const tournament = getTournamentStatus(
       allMatches,
       answerComplete,

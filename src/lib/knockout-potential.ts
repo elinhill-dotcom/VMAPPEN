@@ -2,6 +2,8 @@ import {
   KNOCKOUT_POINTS,
   type KnockoutPickData,
 } from "@/lib/knockout-scoring";
+import { canTeamStillEarnCategory } from "@/lib/knockout-elimination";
+import type { MatchView } from "@/components/MatchCard";
 
 const SLOT_DEFS: {
   key: keyof KnockoutPickData;
@@ -76,14 +78,16 @@ export function knockoutAnswerIsComplete(answer: KnockoutPickData): boolean {
 export function scoreKnockoutPickIncremental(
   pick: KnockoutPickData,
   answer: KnockoutPickData,
+  matches: MatchView[] | null = null,
 ): number {
-  return knockoutPointsStatus(pick, answer).earned;
+  return knockoutPointsStatus(pick, answer, matches).earned;
 }
 
 /** Max points from filled slots; earned/remaining use partial official answer when available. */
 export function knockoutPointsStatus(
   pick: KnockoutPickData,
   answer: KnockoutPickData | null,
+  matches: MatchView[] | null = null,
 ): KnockoutPointsStatus {
   let maxPossible = 0;
   let earned = 0;
@@ -98,6 +102,12 @@ export function knockoutPointsStatus(
 
     const actual = answer ? actualTeamsForCategory(answer, category) : [];
     if (actual.length === 0) {
+      if (
+        matches &&
+        !canTeamStillEarnCategory(picked, category, matches)
+      ) {
+        continue;
+      }
       remaining += slotMax;
       continue;
     }

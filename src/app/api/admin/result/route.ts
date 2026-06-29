@@ -2,16 +2,22 @@ import { clearMatchResult, getFirestoreConfigError, isFirestoreConfigured, updat
 import { CACHE_KEYS, invalidateApiCache } from "@/lib/api-cache";
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
-import { GROUP_MATCH_IDS } from "@/lib/matches-data";
+import { GROUP_MATCH_IDS, KNOCKOUT_MATCH_IDS } from "@/lib/matches-data";
 
 const validGroupIds = new Set(GROUP_MATCH_IDS);
+const validKnockoutIds = new Set(KNOCKOUT_MATCH_IDS);
+const validMatchIds = new Set([...validGroupIds, ...validKnockoutIds]);
 
-function invalidateResultCaches() {
-  invalidateApiCache(
+function invalidateResultCaches(matchId: number) {
+  const keys: string[] = [
     CACHE_KEYS.leaderboard,
     CACHE_KEYS.stats,
     CACHE_KEYS.matches,
-  );
+  ];
+  if (validKnockoutIds.has(matchId)) {
+    keys.push("knockout-overview");
+  }
+  invalidateApiCache(...keys);
 }
 
 export async function POST(req: NextRequest) {
@@ -28,7 +34,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const matchId = Number(body.matchId);
 
-  if (!validGroupIds.has(matchId)) {
+  if (!validMatchIds.has(matchId)) {
     return NextResponse.json({ error: "Invalid match" }, { status: 400 });
   }
 
@@ -40,7 +46,7 @@ export async function POST(req: NextRequest) {
         { status: 500 },
       );
     }
-    invalidateResultCaches();
+    invalidateResultCaches(matchId);
     return NextResponse.json({ match: res.data });
   }
 
@@ -65,6 +71,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  invalidateResultCaches();
+  invalidateResultCaches(matchId);
   return NextResponse.json({ match: res.data });
 }

@@ -96,7 +96,7 @@ export function KnockoutPointsTable({ picks, answerScoringStarted }: Props) {
     <div className="space-y-4">
       <p className="text-sm text-[var(--muted)]">
         {answerScoringStarted
-          ? "Intjänat och kvar att hämta i slutspelet. Poäng läggs till i topplistan allteftersom admin publicerar semifinal, final och mästare. Placering i semifinal spelar ingen roll — rätt lag ger poäng oavsett var du satte det."
+          ? "Intjänat och kvar att hämta i slutspelet. Poäng läggs till i topplistan allteftersom matcher avgörs. Lag som åker ut försvinner från kvar — t.ex. förlorar du både semifinal- och finalpoäng om laget du tippat åker ut tidigt. Placering i semifinal spelar ingen roll."
           : "Max möjliga slutspelspoäng per person (summan av dina 9 val). Ju fler rätt som avslöjas, desto färre poäng kan fortfarande hämtas."}
       </p>
       <div className="overflow-x-auto rounded-xl border border-[var(--border)]">

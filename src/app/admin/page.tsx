@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   KnockoutPickForm,
   emptyKnockoutForm,
@@ -15,7 +15,21 @@ import {
   isAdminLoggedIn,
   verifyAndLogin,
 } from "@/lib/admin-session";
+import { knockoutMatchLabel } from "@/lib/knockout-labels";
+import { KNOCKOUT_STAGE_LABELS } from "@/lib/knockout-bracket";
+import { resolveBracketTeam } from "@/lib/knockout-resolve";
 import Link from "next/link";
+
+type AdminTab = "group" | "knockout-results" | "knockout" | "players" | "export";
+
+const KNOCKOUT_STAGE_ORDER = [
+  "r16",
+  "r8",
+  "qf",
+  "sf",
+  "bronze",
+  "final",
+] as const;
 
 export default function AdminPage() {
   const [password, setPassword] = useState("");
@@ -29,7 +43,7 @@ export default function AdminPage() {
     emptyKnockoutForm(),
   );
   const [filter, setFilter] = useState<"open" | "all">("open");
-  const [tab, setTab] = useState<"group" | "knockout" | "players" | "export">("group");
+  const [tab, setTab] = useState<AdminTab>("group");
   const [message, setMessage] = useState("");
   const [messageIsError, setMessageIsError] = useState(false);
 
@@ -47,7 +61,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!loggedIn) return;
-    fetch("/api/matches?stage=group")
+    fetch("/api/matches")
       .then((r) => r.json())
       .then((d) => setMatches(d.matches ?? []));
     fetch("/api/admin/knockout")
@@ -91,7 +105,22 @@ export default function AdminPage() {
     setPwInput("");
   }
 
-  const shown = matches.filter((m) =>
+  const groupMatches = useMemo(
+    () => matches.filter((m) => m.stage === "group"),
+    [matches],
+  );
+  const knockoutMatches = useMemo(
+    () =>
+      matches
+        .filter((m) => m.stage !== "group")
+        .sort((a, b) => a.id - b.id),
+    [matches],
+  );
+
+  const shownGroup = groupMatches.filter((m) =>
+    filter === "open" ? !m.finished : true,
+  );
+  const shownKnockout = knockoutMatches.filter((m) =>
     filter === "open" ? !m.finished : true,
   );
 
@@ -260,6 +289,17 @@ export default function AdminPage() {
         </button>
         <button
           type="button"
+          onClick={() => setTab("knockout-results")}
+          className={`rounded-lg px-3 py-1.5 text-sm ${
+            tab === "knockout-results"
+              ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+              : "bg-[var(--card)]"
+          }`}
+        >
+          Slutspelsresultat
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("knockout")}
           className={`rounded-lg px-3 py-1.5 text-sm ${
             tab === "knockout"
@@ -307,7 +347,7 @@ export default function AdminPage() {
           </div>
 
           <div className="space-y-4">
-            {shown.map((m) => (
+            {shownGroup.map((m) => (
               <AdminMatchRow
                 key={m.id}
                 match={m}
@@ -319,11 +359,69 @@ export default function AdminPage() {
         </>
       )}
 
+      {tab === "knockout-results" && (
+        <>
+          <p className="text-sm text-[var(--muted)]">
+            Spara vinnare per slutspelsmatch — trädet och poängen uppdateras
+            automatiskt. Lag som åker ut försvinner från &quot;Kvar&quot; i
+            slutspelspoäng.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setFilter("open")}
+              className={`rounded-lg px-3 py-1.5 text-sm ${
+                filter === "open"
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                  : "bg-[var(--card)]"
+              }`}
+            >
+              Ej klara
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilter("all")}
+              className={`rounded-lg px-3 py-1.5 text-sm ${
+                filter === "all"
+                  ? "bg-[var(--accent)] text-[var(--accent-foreground)]"
+                  : "bg-[var(--card)]"
+              }`}
+            >
+              Alla
+            </button>
+          </div>
+
+          <div className="space-y-8">
+            {KNOCKOUT_STAGE_ORDER.map((stage) => {
+              const stageMatches = shownKnockout.filter((m) => m.stage === stage);
+              if (stageMatches.length === 0) return null;
+              return (
+                <section key={stage} className="space-y-3">
+                  <h3 className="font-semibold text-[var(--accent)]">
+                    {KNOCKOUT_STAGE_LABELS[stage]}
+                  </h3>
+                  {stageMatches.map((m) => (
+                    <AdminKnockoutMatchRow
+                      key={m.id}
+                      match={m}
+                      allMatches={knockoutMatches}
+                      onSave={saveResult}
+                      onClear={clearResult}
+                    />
+                  ))}
+                </section>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       {tab === "knockout" && (
         <div className="space-y-4">
           <p className="text-sm text-[var(--muted)]">
-            Ange faktiska semifinalister, finalister, bronslag och mästare när
-            turneringen når dessa steg.
+            Valfritt manuellt slutspelssvar om du vill åsidosätta det som
+            härleds från matchresultat. Normalt räcker det att fylla i
+            slutspelsresultat ovan.
           </p>
           <KnockoutPickForm
             form={knockout}
@@ -339,6 +437,97 @@ export default function AdminPage() {
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+function AdminKnockoutMatchRow({
+  match,
+  allMatches,
+  onSave,
+  onClear,
+}: {
+  match: MatchView;
+  allMatches: MatchView[];
+  onSave: (id: number, h: number, a: number) => void;
+  onClear: (id: number) => void;
+}) {
+  const [home, setHome] = useState(
+    match.homeScore !== null ? String(match.homeScore) : "0",
+  );
+  const [away, setAway] = useState(
+    match.awayScore !== null ? String(match.awayScore) : "0",
+  );
+
+  const homeResolved = resolveBracketTeam(match.homeTeam, allMatches);
+  const awayResolved = resolveBracketTeam(match.awayTeam, allMatches);
+  const canPickWinner = !homeResolved.pending && !awayResolved.pending;
+  const label = knockoutMatchLabel(match);
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4">
+      <p className="text-xs text-[var(--muted)] mb-2">
+        #{match.id}
+        {label ? ` · ${label}` : ""} · {match.dayLabel}
+      </p>
+      <p className="font-semibold mb-3">
+        {homeResolved.name} – {awayResolved.name}
+      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        {canPickWinner && (
+          <>
+            <button
+              type="button"
+              onClick={() => onSave(match.id, 1, 0)}
+              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--bg)]"
+            >
+              {homeResolved.name} vann
+            </button>
+            <button
+              type="button"
+              onClick={() => onSave(match.id, 0, 1)}
+              className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm hover:bg-[var(--bg)]"
+            >
+              {awayResolved.name} vann
+            </button>
+            <span className="text-xs text-[var(--muted)]">eller resultat:</span>
+          </>
+        )}
+        <input
+          type="number"
+          min={0}
+          value={home}
+          onChange={(e) => setHome(e.target.value)}
+          className="w-14 rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-center"
+        />
+        <span>–</span>
+        <input
+          type="number"
+          min={0}
+          value={away}
+          onChange={(e) => setAway(e.target.value)}
+          className="w-14 rounded border border-[var(--border)] bg-[var(--bg)] px-2 py-1 text-center"
+        />
+        <button
+          type="button"
+          onClick={() => onSave(match.id, Number(home), Number(away))}
+          className="rounded-lg bg-[var(--success)] px-4 py-1.5 text-sm font-medium text-[var(--accent-foreground)]"
+        >
+          {match.finished ? "Uppdatera" : "Spara resultat"}
+        </button>
+        {match.finished && (
+          <>
+            <span className="text-xs text-[var(--muted)]">Klar</span>
+            <button
+              type="button"
+              onClick={() => onClear(match.id)}
+              className="rounded-lg border border-[var(--danger)]/50 px-4 py-1.5 text-sm text-[var(--danger)] hover:bg-[var(--danger)]/10"
+            >
+              Nollställ resultat
+            </button>
+          </>
+        )}
+      </div>
     </div>
   );
 }

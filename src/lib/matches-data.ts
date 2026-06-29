@@ -140,5 +140,8 @@ export const JAR_CONTRIBUTION_EUR = 100;
 export const GROUP_MATCH_IDS = MATCHES.filter((m) => m.stage === "group").map(
   (m) => m.id,
 );
+export const KNOCKOUT_MATCH_IDS = MATCHES.filter((m) => m.stage !== "group").map(
+  (m) => m.id,
+);
 export const POINTS_EXACT = 3;
 export const POINTS_OUTCOME = 1;

@@ -11,6 +11,7 @@ import {
   knockoutAnswerIsComplete,
   knockoutPointsStatus,
 } from "@/lib/knockout-potential";
+import { getEffectiveKnockoutAnswer } from "@/lib/knockout-derive-answer";
 import type { KnockoutFormState } from "@/lib/knockout-picks";
 import type { KnockoutPickData } from "@/lib/knockout-scoring";
 import { toSwedishTeam } from "@/lib/team-names";
@@ -68,8 +69,9 @@ function toPickView(
   name: string,
   pick: KnockoutPickData,
   answer: KnockoutPickData | null,
+  matches: MatchView[],
 ): KnockoutPickView {
-  const status = knockoutPointsStatus(pick, answer);
+  const status = knockoutPointsStatus(pick, answer, matches);
   const pickCount = [
     pick.sf1Home,
     pick.sf1Away,
@@ -129,7 +131,7 @@ export async function computeKnockoutOverview(): Promise<
       ? ({ id: 1, ...koAnswerDoc.data() } as KnockoutAnswerRow)
       : null;
     const mappedAnswer = answerRow ? mapKnockoutAnswer(answerRow) : null;
-    const answer: KnockoutPickData | null = mappedAnswer
+    const manualAnswer: KnockoutPickData | null = mappedAnswer
       ? {
           sf1Home: mappedAnswer.sf1Home,
           sf1Away: mappedAnswer.sf1Away,
@@ -142,16 +144,16 @@ export async function computeKnockoutOverview(): Promise<
           champion: mappedAnswer.champion,
         }
       : null;
-    const answerScoringStarted = !!(
-      mappedAnswer?.set &&
-      answer &&
-      knockoutAnswerHasProgress(answer)
+    const manualPublished = !!mappedAnswer?.set;
+    const effectiveAnswer = getEffectiveKnockoutAnswer(
+      manualAnswer,
+      manualPublished,
+      matches,
     );
-    const answerComplete = !!(
-      mappedAnswer?.set &&
-      answer &&
-      knockoutAnswerIsComplete(answer)
-    );
+    const answerScoringStarted =
+      knockoutAnswerHasProgress(effectiveAnswer) ||
+      matches.some((m) => m.finished);
+    const answerComplete = knockoutAnswerIsComplete(effectiveAnswer);
 
     const koByPlayer = new Map<string, KnockoutPickData>();
     for (const doc of koPicksSnap.docs) {
@@ -172,13 +174,20 @@ export async function computeKnockoutOverview(): Promise<
           row.id,
           row.name,
           pick,
-          answerScoringStarted ? answer : null,
+          answerScoringStarted ? effectiveAnswer : null,
+          matches,
         );
       })
       .filter((p): p is KnockoutPickView => p !== null);
 
     return {
-      data: { matches, answer, answerScoringStarted, answerComplete, picks },
+      data: {
+        matches,
+        answer: answerScoringStarted ? effectiveAnswer : manualAnswer,
+        answerScoringStarted,
+        answerComplete,
+        picks,
+      },
       error: null,
     };
   } catch (e) {
