@@ -16,28 +16,28 @@ export type BracketSideTree = {
   sf: readonly number[];
 };
 
-/** Left half — pairs feed into r8 89–92. */
+/** Left half — feeds into r8 90, 89, 93, 94 (top to bottom). */
 export const BRACKET_LEFT: BracketSideTree = {
   r16Pairs: [
-    [73, 75],
-    [74, 77],
-    [76, 78],
-    [79, 80],
+    [75, 78],
+    [73, 76],
+    [84, 83],
+    [82, 81],
   ],
-  r8: [89, 90, 91, 92],
+  r8: [90, 89, 93, 94],
   qf: [97, 98],
   sf: [101],
 };
 
-/** Right half — pairs feed into r8 93–96. */
+/** Right half — feeds into r8 91, 92, 95, 96 (top to bottom). */
 export const BRACKET_RIGHT: BracketSideTree = {
   r16Pairs: [
-    [83, 84],
-    [81, 82],
-    [86, 88],
-    [85, 87],
+    [74, 77],
+    [79, 80],
+    [87, 86],
+    [85, 88],
   ],
-  r8: [93, 94, 95, 96],
+  r8: [91, 92, 95, 96],
   qf: [99, 100],
   sf: [102],
 };
